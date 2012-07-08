@@ -1,0 +1,66 @@
+[
+  {
+    "name" : "vsphere provision",
+    "description" : "Provision instances with VMWare vSphere",
+    "license" : "Apache 2.0",
+    "author": "Carlos Sanchez",
+    "version": "1.0-SNAPSHOT",
+    "class": "MaestroDev::VSphereWorker",
+    "type":"ruby",
+    "dependencies":[
+      {
+        "name" : "fog",
+        "version" : "1.4.0",
+        "source" : "http://rubygems.org/"
+      },
+      {
+        "name" : "rbvmomi",
+        "version" : "1.5.1",
+        "source" : "http://rubygems.org/"
+      }
+    ],
+    "task":{
+      "command" : "/vsphere/provision",    
+      "inputs" :  {
+        "host":{"required":true,"type":"String","value":"localhost"},
+        "datacenter":{"required":true,"type":"String","value":"ha-datacenter"},
+        "username":{"required":true,"type":"String","value":""},
+        "password":{"required":true,"type":"Password","value":""},
+        "template_name":{"required":true,"type":"String","value":""},      
+        "vm_name":{"required":true,"type":"String","value":""},
+        "count":{"required":true,"type":"Integer","value":1},
+        "ssh_user":{"required":false,"type":"String","value":"root"},
+        "ssh_commands":{"required":false,"type":"Array","value":[]},
+        "private_key_path":{"required":false,"type":"String","value":""}
+      },
+      "tool_name":"Cloud"
+    }
+  },
+  {
+    "name" : "vsphere deprovision",
+    "description" : "Deprovision instances with VMWare vSphere",
+    "license" : "Apache 2.0",
+    "author": "Carlos Sanchez",
+    "version": "1.0-SNAPSHOT",
+    "class": "MaestroDev::VSphereWorker",
+    "type":"ruby",
+    "dependencies":[
+      {
+        "name" : "fog",
+        "version" : "1.4.0",
+        "source" : "http://rubygems.org/"
+      },
+      {
+        "name" : "rbvmomi",
+        "version" : "1.5.1",
+        "source" : "http://rubygems.org/"
+      }
+    ],
+    "task":{
+      "command" : "/vsphere/deprovision",    
+      "inputs" :  {
+      },
+      "tool_name":"Cloud"
+    }
+  }
+]

@@ -1,0 +1,7 @@
+/pkg/
+/vendor/
+/target/
+/package/
+/.bundle/
+/maestro-*-plugin*zip
+/tmp/
