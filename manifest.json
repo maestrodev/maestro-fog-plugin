@@ -33,6 +33,7 @@
         "ssh_commands":{"required":false,"type":"Array","value":[]},
         "private_key_path":{"required":false,"type":"String","value":""}
       },
+      "outputs" : {"output" : {"type" : "String"}},
       "tool_name":"Cloud"
     }
   },
@@ -60,6 +61,7 @@
       "command" : "/vsphere/deprovision",    
       "inputs" :  {
       },
+      "outputs" : {"output" : {"type" : "String"}},
       "tool_name":"Cloud"
     }
   }
