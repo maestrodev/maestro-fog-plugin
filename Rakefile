@@ -40,6 +40,6 @@ task :package do
     add_dir z, '.', 'vendor'
     add_file z, '.', 'manifest.json'
     add_file z, '.', 'README.md'
-    add_file z, '.', 'src/vsphere_worker.rb'
+    add_file z, '.', 'src/v_sphere_worker.rb'
   end
 end
