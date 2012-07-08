@@ -6,7 +6,7 @@ $:.push File.expand_path("../src", __FILE__)
 
 CLEAN.include("maestro-*-plugin-*.zip","vendor","package","tmp")
 
-task :default => [:bundle, :spec, :package]
+task :default => [:clean, :bundle, :spec, :package]
 
 desc "Run specs"
 RSpec::Core::RakeTask.new do |t|
