@@ -150,7 +150,6 @@ module MaestroDev
         msg = "Error Provisioning: #{e.message}\n#{e.backtrace.join("\n")}"
         Maestro.log.error msg
         set_error(msg)
-        raise e
       end
 
       msg = "Maestro::VSphereWorker::provision complete!"
