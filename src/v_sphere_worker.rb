@@ -38,15 +38,15 @@ module MaestroDev
     def validate_provision_fields
       errors = []
       ['host', 'datacenter', 'username', 'password', 'template_name', 'vm_name'].each{|s|
-        errors << "missing #{s}" if workitem.fields[s].nil? || workitem.fields[s].empty?
+        errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
       }
       raise "Not a valid fieldset, #{errors.join("\n")}" unless errors.empty?
     end
 
     def provision_execute(s)
-      commands = workitem.fields['ssh_commands']
-      s.username = workitem.fields['ssh_user'] || "root"
-      s.private_key_path = workitem.fields["private_key_path"]
+      commands = get_field('ssh_commands')
+      s.username = get_field('ssh_user') || "root"
+      s.private_key_path = get_field("private_key_path")
 
       return if (commands == nil) || (commands == '') || Fog.mocking?
 
@@ -80,7 +80,7 @@ module MaestroDev
           Maestro.log.warn "[#{s.hostname}] Try #{i} - failed to connect: #{e}, retrying..."
           i = i+1
           if i > 10
-            workitem.fields['__error__'] = "Could not connect to remote machine"
+            set_error("Could not connect to remote machine")
             raise SshError, "Could not connect to remote machine"
           else
             sleep 5
@@ -143,8 +143,8 @@ module MaestroDev
           hostnames << s.hostname
           instance_uuids << s.instance_uuid
         end
-        workitem.fields['ip'] = ips
-        workitem.fields['hostname'] = hostnames
+        set_field('ip', ips)
+        set_field('hostname', hostnames)
 
       rescue Exception => e
         msg = "Error Provisioning: #{e.message}\n#{e.backtrace.join("\n")}"
