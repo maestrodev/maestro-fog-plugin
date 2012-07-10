@@ -35,22 +35,35 @@ end
 module MaestroDev
   class VSphereWorker < Maestro::MaestroWorker
 
-    def validate_provision_fields
-      errors = []
-      ['host', 'datacenter', 'username', 'password', 'template_name', 'vm_name'].each{|s|
-        errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
-      }
-      raise "Not a valid fieldset, #{errors.join("\n")}" unless errors.empty?
+    def log(message, exception)
+      msg = "#{message}: #{exception.message}\n#{exception.backtrace.join("\n")}"
+      Maestro.log.error msg
+      set_error(msg)
     end
 
+    def required_fields
+      ['host', 'datacenter', 'username', 'password', 'template_name', 'vm_name']
+    end
+
+    def validate_provision_fields
+      errors = []
+      required_fields.each{|s|
+        errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
+      }
+      return errors
+    end
+
+    # returns an array with errors, or empty if successful
     def provision_execute(s)
       commands = get_field('ssh_commands')
       s.username = get_field('ssh_user') || "root"
       s.private_key_path = get_field("private_key_path")
+      host = (s.hostname.nil? || (s.hostname == '')) ? s.public_ip_address : s.hostname
 
-      return if (commands == nil) || (commands == '') || Fog.mocking?
+      errors = []
+      return errors if (commands == nil) || (commands == '') || Fog.mocking?
 
-      msg = "Running SSH Commands On New Machine #{s.hostname} - #{commands.join(", ")}"
+      msg = "Running SSH Commands On New Machine #{host} - #{commands.join(", ")}"
       Maestro.log.info msg
       write_output "#{msg}\n"
 
@@ -61,27 +74,35 @@ module MaestroDev
             e = result.stderr
             o = result.stdout
 
-            if !result.stderr.nil? && result.stderr != '' 
-              Maestro.log.info "[#{s.hostname}] #{result.command} -> #{e}"
-              write_output "\nSSH command error: #{e}\n"
-              raise SshError, "SSH command error: #{e}"
-            end
-            if result.stdout.include? 'command not found'
-              raise Exception, "Remote command not found: #{result.command}"
-            end
-            Maestro.log.info "[#{s.hostname}] #{result.command} -> #{o}"
+            msg = "[#{host}] Ran Command #{result.command} With Output:\n#{o}\n"
+            Maestro.log.debug msg
+            write_output msg
 
-            write_output "\nConnected To #{s.hostname}, Ran Command #{result.command} With Output:\n#{o}"
+            if !result.stderr.nil? && result.stderr != ''
+              msg = "[#{host}] Stderr:\n#{o}"
+              Maestro.log.debug msg
+              write_output "#{msg}\n"
+            end
+
+            if result.status != 0
+              msg = "[#{host}] Command '#{result.command}' failed with status #{result.status}"
+              errors << msg
+              Maestro.log.info msg
+              write_output "#{msg}\n"
+            end
 
           end unless responses.nil?
           break
         rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::SSH::Disconnect => e
-          write_output "\n[#{s.hostname}] Try #{i} - failed to connect: #{e}, retrying..."
-          Maestro.log.warn "[#{s.hostname}] Try #{i} - failed to connect: #{e}, retrying..."
+          msg = "[#{host}] Try #{i} - failed to connect: #{e}, retrying..."
+          write_output "#{msg}\n"
+          Maestro.log.warn msg
           i = i+1
           if i > 10
-            set_error("Could not connect to remote machine")
-            raise SshError, "Could not connect to remote machine"
+            msg = "[#{host}] Could not connect to remote machine after 10 attempts"
+            errors << msg
+            write_output "#{msg}\n"
+            Maestro.log.warn msg
           else
             sleep 5
             next
@@ -91,66 +112,97 @@ module MaestroDev
     end
 
     def provision
+      msg = "Starting vSphere provision"
+      Maestro.log.info msg
+      write_output("#{msg}\n")
+
+      errors = validate_provision_fields
+      unless errors.empty?
+        msg = "Not a valid fieldset, #{errors.join("\n")}"
+        Maestro.log.error msg
+        set_error msg
+        return
+      end
+
+      host = get_field('host')
+      datacenter = get_field('datacenter')
+      username = get_field('username')
+      password = get_field('password')
+      template_name = get_field('template_name')
+      vm_name = get_field('vm_name')
+      count = get_field('count') || 1
+
       begin
-        msg = "Starting vSphere provision"
-        Maestro.log.info msg
-        write_output("#{msg}\n")
-
-        validate_provision_fields
-
-        host = get_field('host')
-        datacenter = get_field('datacenter')
-        username = get_field('username')
-        password = get_field('password')
-        template_name = get_field('template_name')
-        vm_name = get_field('vm_name')
-        count = get_field('count') || 1
-
         connection = Fog::Compute.new(
           :provider => "vsphere",
           :vsphere_username => username,
           :vsphere_password => password,
-          :vsphere_server => host)        
+          :vsphere_server => host)
+      rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+        msg = "Unable to connect to vSphere at '#{host}': #{e}"
+        Maestro.log.error msg
+        set_error msg
+        return
+      end
 
-        ips = []
-        hostnames = []
-        instance_uuids = []
+      ips = []
+      hostnames = []
+      ids = []
+      servers = []
 
-        (1..count).each do |i|
-          name = count > 1 ? "#{vm_name}#{i}" : vm_name
-          msg = "Cloning VM #{template_name} into #{name}"
-          Maestro.log.info msg
-          write_output("#{msg}\n")
+      (1..count).each do |i|
+        name = count > 1 ? "#{vm_name}#{i}" : vm_name
+        msg = "Cloning VM #{template_name} into #{name}"
+        Maestro.log.info msg
+        write_output("#{msg}\n")
 
+        path = "/Datacenters/#{datacenter}/#{template_name}"
+        begin
           # easier to do vm_clone than find the server and then clone
           cloned = connection.vm_clone(
             'name' => name,
-            'path' => "/Datacenters/#{datacenter}/#{template_name}",
+            'path' => path,
             'poweron' => true,
             'wait' => true)
-          s = connection.servers.get(cloned['vm_ref'])
-
-          raise "Failed to clone VM #{template_name} into #{name}" if s.nil?
-
-          msg = "Started VM #{s.name} #{s.hostname} #{s.ipaddress}"
-          Maestro.log.info msg
-          write_output("#{msg}\n")
-
-          s.public_ip_address = s.ipaddress # needed for ssh
-          provision_execute(s)
-
-          ips << s.ipaddress
-          hostnames << s.hostname
-          instance_uuids << s.instance_uuid
+        rescue Fog::Compute::Vsphere::NotFound => e
+          msg = "VM template '#{path}' not found" 
+          Maestro.log.error msg
+          set_error msg
+          return
+        rescue Exception => e
+          log("Error cloning template '#{path}' as '#{name}'", e) and return
         end
-        set_field('ip', ips)
-        set_field('hostname', hostnames)
+        s = connection.servers.get(cloned['vm_ref'])
 
-      rescue Exception => e
-        msg = "Error Provisioning: #{e.message}\n#{e.backtrace.join("\n")}"
-        Maestro.log.error msg
-        set_error(msg)
+        if s.nil?
+          msg = "Failed to clone VM '#{path}' as '#{name}'" 
+          Maestro.log.error msg
+          set_error msg
+          return
+        end
+
+        msg = "Started VM '#{s.name}' with hostname '#{s.hostname}' and ip '#{s.ipaddress}'"
+        Maestro.log.info msg
+        write_output("#{msg}\n")
+
+        s.public_ip_address = s.ipaddress # needed for ssh
+
+        servers << s
+        ips << s.ipaddress
+        hostnames << s.hostname
+        ids << s.mo_ref
       end
+
+      # run provisioning commands through ssh
+      errors = []
+      servers.each do |s|
+        errors += provision_execute(s)
+      end
+      set_error(errors.join("\n")) unless errors.empty?
+
+      set_field('ips', ips)
+      set_field('hostnames', hostnames)
+      set_field('ids', ids)
 
       msg = "Maestro::VSphereWorker::provision complete!"
       Maestro.log.debug msg
@@ -158,34 +210,38 @@ module MaestroDev
     end
     
     def deprovision
+      msg = "Starting vSphere deprovision"
+      Maestro.log.info msg
+      write_output("#{msg}\n")
+
+      host = get_field('host')
+      username = get_field('username')
+      password = get_field('password')
+      ids = get_field('ids')
+
       begin
-        msg = "Starting vSphere deprovision"
-        Maestro.log.info msg
-        write_output("#{msg}\n")
-
-        host = get_field('host')
-        username = get_field('username')
-        password = get_field('password')
-        instance_uuids = get_field('instance_uuids')
-
         connection = Fog::Compute.new(
           :provider => "vsphere",
           :vsphere_username => username,
           :vsphere_password => password,
-          :vsphere_server => host)        
-
-        instance_uuids.each do |instance_uuid|
-          msg = "Deprovisioning VM #{instance_uuid}"
-          Maestro.log.info msg
-          write_output("#{msg}\n")
-          
-          connection.vm_destroy('instance_uuid' => instance_uuid)
-        end
-
-      rescue Exception => e
-        msg = "Error Deprovisioning: #{e.message}\n#{e.backtrace.join("\n")}"
+          :vsphere_server => host)
+      rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+        msg = "Unable to connect to vSphere at '#{host}': #{e}"
         Maestro.log.error msg
-        set_error(msg)
+        set_error msg
+        return
+      end
+
+      ids.each do |id|
+        msg = "Deprovisioning VM with id '#{id}'"
+        Maestro.log.info msg
+        write_output("#{msg}\n")
+        begin
+          s = connection.servers.get(id)
+          s.destroy
+        rescue Exception => e
+          log("Error destroying instance with id '#{id}'", e)
+        end
       end
 
       msg = "Maestro::VSphereWorker::deprovision complete!"
