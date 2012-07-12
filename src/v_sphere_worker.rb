@@ -192,7 +192,7 @@ module MaestroDev
         servers << s
         ips << s.ipaddress
         hostnames << s.hostname
-        ids << s.mo_ref
+        ids << s.id
       end
 
       # run provisioning commands through ssh
