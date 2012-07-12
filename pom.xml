@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.maestrodev</groupId>
+  <artifactId>maestro-vsphere-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>maestro-vsphere-plugin</name>
+  <packaging>zip</packaging>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:maestrodev/maestro-vsphere-plugin.git</developerConnection>
+    <connection>scm:git:git@github.com:maestrodev/maestro-vsphere-plugin.git</connection>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>maestro-deploy</id>
+      <url>https://repo.maestrodev.com/archiva/repository/public-releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>maestro-deploy</id>
+      <url>https://repo.maestrodev.com/archiva/repository/public-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>
