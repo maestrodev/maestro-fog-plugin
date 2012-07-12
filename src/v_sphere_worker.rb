@@ -1,4 +1,3 @@
-require 'pp'
 require 'maestro_agent'
 require 'fog'
 require 'fog/compute/models/server'
@@ -26,7 +25,6 @@ module Fog
           @private_key ||= private_key_path && File.read(private_key_path)
         end
       end
-
     end
   end
 end
@@ -51,6 +49,14 @@ module MaestroDev
         errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
       }
       return errors
+    end
+
+    def connect(username, password, host)
+      Fog::Compute.new(
+        :provider => "vsphere",
+        :vsphere_username => username,
+        :vsphere_password => password,
+        :vsphere_server => host)
     end
 
     # returns an array with errors, or empty if successful
@@ -133,11 +139,7 @@ module MaestroDev
       count = get_field('count') || 1
 
       begin
-        connection = Fog::Compute.new(
-          :provider => "vsphere",
-          :vsphere_username => username,
-          :vsphere_password => password,
-          :vsphere_server => host)
+        connection = connect(username, password, host)
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
         msg = "Unable to connect to vSphere at '#{host}': #{e}"
         Maestro.log.error msg
@@ -200,9 +202,13 @@ module MaestroDev
       end
       set_error(errors.join("\n")) unless errors.empty?
 
-      set_field('ips', ips)
-      set_field('hostnames', hostnames)
-      set_field('ids', ids)
+      # save some values in the workitem so they are accessible for deprovision and other tasks
+      set_field('vsphere_host', host)
+      set_field('vsphere_username', username)
+      set_field('vsphere_password', password)
+      set_field('vsphere_ips', ips)
+      set_field('vsphere_hostnames', hostnames)
+      set_field('vsphere_ids', ids)
 
       msg = "Maestro::VSphereWorker::provision complete!"
       Maestro.log.debug msg
@@ -214,17 +220,13 @@ module MaestroDev
       Maestro.log.info msg
       write_output("#{msg}\n")
 
-      host = get_field('host')
-      username = get_field('username')
-      password = get_field('password')
-      ids = get_field('ids')
+      host = get_field('vsphere_host')
+      username = get_field('vsphere_username')
+      password = get_field('vsphere_password')
+      ids = get_field('vsphere_ids')
 
       begin
-        connection = Fog::Compute.new(
-          :provider => "vsphere",
-          :vsphere_username => username,
-          :vsphere_password => password,
-          :vsphere_server => host)
+        connection = connect(username, password, host)
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
         msg = "Unable to connect to vSphere at '#{host}': #{e}"
         Maestro.log.error msg
@@ -238,7 +240,21 @@ module MaestroDev
         write_output("#{msg}\n")
         begin
           s = connection.servers.get(id)
-          s.destroy
+
+          if s.nil?
+            msg = "VM with id '#{id}' not found, ignoring"
+            Maestro.log.warn msg
+            write_output("#{msg}\n")
+            set_error msg
+          else
+            if s.ready? # turn off before destroying
+              msg = "VM '#{id}' is running, stopping it"
+              Maestro.log.info msg
+              write_output("#{msg}\n")
+              s.stop
+            end
+            s.destroy
+          end
         rescue Exception => e
           log("Error destroying instance with id '#{id}'", e)
         end
