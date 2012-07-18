@@ -27,7 +27,9 @@ module MaestroDev
       image_id = get_field('image_id')
       flavor_id = get_field('flavor_id')
       base_name = get_field('name')
-      name = "#{base_name}#{i}" if !base_name.nil? && !base_name.empty? && count > 1
+      if !base_name.nil? && !base_name.empty?
+        name = count > 1 ? "#{base_name}#{i}" : base_name
+      end
       ssh_user = get_field('ssh_user') || "root"
       public_key = get_field('public_key')
 
