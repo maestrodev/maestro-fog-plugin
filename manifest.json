@@ -96,7 +96,6 @@
         "number_of_vms":   {"required":true, "type":"Integer", "value":1},
         "ssh_user":        {"required":false,"type":"String",  "value":"root"},
         "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
-        "public_key":      {"required":false,"type":"String",  "value":""},
         "private_key":     {"required":false,"type":"String",  "value":""},
         "private_key_path":{"required":false,"type":"String",  "value":""}
       },
