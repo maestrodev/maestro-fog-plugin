@@ -64,7 +64,11 @@ module MaestroDev
     def create_server(connection, number_of_vms, i)
       datacenter = get_field('datacenter')
       template_name = get_field('template_name')
-      vm_name = get_field('vm_name')
+      vm_name = get_field('name')
+      if vm_name.nil? || vm_name.empty?
+        # create 5 random chars
+        vm_name = "maestro_#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
+      end
 
       name = number_of_vms > 1 ? "#{vm_name}#{i}" : vm_name
 

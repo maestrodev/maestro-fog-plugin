@@ -87,7 +87,7 @@ describe MaestroDev::VSphereWorker do
         "username" => @username,
         "password" => @password,
         "template_name" => @template_name,
-        "vm_name" => "xxx",
+        "name" => "xxx",
         "ssh_commands" => ["hostname"]
       }
     end

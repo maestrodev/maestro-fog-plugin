@@ -22,8 +22,8 @@
         "api_key":         {"required":true, "type":"Password","value":""},
         "image_id":        {"required":true, "type":"Integer", "value":49},
         "flavor_id":       {"required":true, "type":"Integer", "value":1},
-        "name":            {"required":false,"type":"String",  "value":""},
 
+        "name":            {"required":false,"type":"String",  "value":""},
         "number_of_vms":   {"required":true, "type":"Integer", "value":1},
         "ssh_user":        {"required":false,"type":"String",  "value":"root"},
         "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
@@ -65,7 +65,7 @@
   /* ************************************ VMWare ************************************ */
   {
     "name" : "vsphere provision",
-    "description" : "Provision servers with VMWare vSphere.<br>[host] vSphere host<br>[datacenter] vSphere datacenter where the server will be created<br>[username] vSphere username<br>[password] vSphere password<br>[template_name] name of the server template to use<br>[vm_name] name of the started vm<br>[number_of_vms] number of instances to start<br>[ssh_user] username to use for ssh connection<br>[ssh_commands] commands to execute in the server once it is started<br>[public_key] ssh public key to copy to the server<br>[private_key] ssh private key content to use to connect to the server<br>[private_key_path] ssh private key path in the agent to use to connect to the server (instead of private_key content)",
+    "description" : "Provision servers with VMWare vSphere.<br>[host] vSphere host<br>[datacenter] vSphere datacenter where the server will be created<br>[username] vSphere username<br>[password] vSphere password<br>[template_name] name of the server template to use<br>[name] name of the started vm<br>[number_of_vms] number of instances to start<br>[ssh_user] username to use for ssh connection<br>[ssh_commands] commands to execute in the server once it is started<br>[public_key] ssh public key to copy to the server<br>[private_key] ssh private key content to use to connect to the server<br>[private_key_path] ssh private key path in the agent to use to connect to the server (instead of private_key content)",
     "license" : "Apache 2.0",
     "author": "Carlos Sanchez",
     "version": "1.0-SNAPSHOT",
@@ -91,8 +91,8 @@
         "username":        {"required":true, "type":"String",  "value":""},
         "password":        {"required":true, "type":"Password","value":""},
         "template_name":   {"required":true, "type":"String",  "value":""},
-        "vm_name":         {"required":true, "type":"String",  "value":""},
 
+        "name":            {"required":false,"type":"String",  "value":""},
         "number_of_vms":   {"required":true, "type":"Integer", "value":1},
         "ssh_user":        {"required":false,"type":"String",  "value":"root"},
         "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
