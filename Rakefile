@@ -19,7 +19,9 @@ end
 
 desc "Get dependencies with Bundler"
 task :bundle do
-  system "bundle package"
+  sh "bundle package" do |ok, res|
+    fail "Failed to run bundle package" unless ok
+  end
 end
 
 def add_file( zippyfile, dst_dir, f )
