@@ -122,11 +122,11 @@ module MaestroDev
 
       servers = []
 
-      count = get_field('count') || 1
+      number_of_vms = get_field('number_of_vms') || 1
 
-      (1..count).each do |i|
+      (1..number_of_vms).each do |i|
         # create the server in the cloud provider
-        s = create_server(connection, count, i)
+        s = create_server(connection, number_of_vms, i)
 
         if s.nil? && get_field("__error__").nil?
           msg = "Failed to create VM"

@@ -61,12 +61,12 @@ module MaestroDev
       }
     end
 
-    def create_server(connection, count, i)
+    def create_server(connection, number_of_vms, i)
       datacenter = get_field('datacenter')
       template_name = get_field('template_name')
       vm_name = get_field('vm_name')
 
-      name = count > 1 ? "#{vm_name}#{i}" : vm_name
+      name = number_of_vms > 1 ? "#{vm_name}#{i}" : vm_name
 
       msg = "Cloning VM #{template_name} into #{name}"
       Maestro.log.info msg
