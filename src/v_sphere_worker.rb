@@ -50,7 +50,7 @@ module MaestroDev
     end
 
     def required_fields
-      ['host', 'datacenter', 'username', 'password', 'template_name', 'vm_name']
+      ['host', 'datacenter', 'username', 'password', 'template_name']
     end
 
     def connect_options
@@ -66,7 +66,7 @@ module MaestroDev
       template_name = get_field('template_name')
       vm_name = get_field('name')
       if vm_name.nil? || vm_name.empty?
-        # create 5 random chars
+        # create 5 random chars if name not provided
         vm_name = "maestro_#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
       end
 
