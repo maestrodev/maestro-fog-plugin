@@ -22,7 +22,7 @@
         "api_key":         {"required":true, "type":"Password","value":""},
         "image_id":        {"required":true, "type":"Integer", "value":49},
         "flavor_id":       {"required":true, "type":"Integer", "value":1},
-        "name":            {"required":true, "type":"String",  "value":""},
+        "name":            {"required":false,"type":"String",  "value":""},
 
         "count":           {"required":true, "type":"Integer", "value":1},
         "ssh_user":        {"required":false,"type":"String",  "value":"root"},

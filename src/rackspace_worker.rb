@@ -26,7 +26,8 @@ module MaestroDev
     def create_server(connection, count, i)
       image_id = get_field('image_id')
       flavor_id = get_field('flavor_id')
-      name = count > 1 ? "#{get_field('name')}#{i}" : get_field('name')
+      name = get_field('name')
+      name = "#{name}#{i}" if !name.nil? && !name.empty? && count > 1
       ssh_user = get_field('ssh_user') || "root"
       public_key = get_field('public_key')
 
