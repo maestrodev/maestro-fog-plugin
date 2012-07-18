@@ -96,6 +96,7 @@ module MaestroDev
           end
         end
       end
+      return errors
     end
 
     def provision
@@ -147,6 +148,7 @@ module MaestroDev
       servers.each do |s|
         errors << provision_execute(s)
       end
+      errors.flatten!
       set_error(errors.join("\n")) unless errors.empty?
 
       # save some values in the workitem so they are accessible for deprovision and other tasks
