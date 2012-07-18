@@ -36,10 +36,14 @@ end
 
 desc "Package plugin zip"
 task :package do
-  Zippy.create 'maestro-vsphere-plugin-1.0-SNAPSHOT.zip' do |z|
-    add_dir z, '.', 'vendor'
-    add_file z, '.', 'manifest.json'
-    add_file z, '.', 'README.md'
-    add_file z, '.', 'src/v_sphere_worker.rb'
+  sh "zip -r maestro-fog-plugin-1.0-SNAPSHOT.zip src vendor LICENSE README.md manifest.json" do |ok, res|
+    fail "Failed to create zip file" unless ok
   end
+  # Zippy.create 'maestro-fog-plugin-1.0-SNAPSHOT.zip' do |z|
+  #   add_dir z, '.', 'src'
+  #   add_dir z, '.', 'vendor'
+  #   add_file z, '.', 'manifest.json'
+  #   add_file z, '.', 'README.md'
+  #   add_file z, '.', 'LICENSE'
+  # end
 end
