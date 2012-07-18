@@ -145,7 +145,7 @@ module MaestroDev
       # run provisioning commands through ssh
       errors = []
       servers.each do |s|
-        errors += provision_execute(s)
+        errors << provision_execute(s)
       end
       set_error(errors.join("\n")) unless errors.empty?
 
