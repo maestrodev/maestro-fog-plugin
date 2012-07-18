@@ -1,6 +1,8 @@
 require 'rake/clean'
 require 'rspec/core/rake_task'
 require 'zippy'
+require 'pp'
+require 'nokogiri'
 
 $:.push File.expand_path("../src", __FILE__)
 
@@ -36,10 +38,16 @@ end
 
 desc "Package plugin zip"
 task :package do
-  sh "zip -r maestro-fog-plugin-1.0-SNAPSHOT.zip src vendor LICENSE README.md manifest.json" do |ok, res|
+  f = File.open("pom.xml")
+  doc = Nokogiri::XML(f.read)
+  f.close
+  artifactId = doc.css('artifactId').text
+  version = doc.css('version').text
+  
+  sh "zip -r #{artifactId}-#{version}.zip src vendor LICENSE README.md manifest.json" do |ok, res|
     fail "Failed to create zip file" unless ok
   end
-  # Zippy.create 'maestro-fog-plugin-1.0-SNAPSHOT.zip' do |z|
+  # Zippy.create "#{artifactId}-#{version}.zip" do |z|
   #   add_dir z, '.', 'src'
   #   add_dir z, '.', 'vendor'
   #   add_file z, '.', 'manifest.json'
