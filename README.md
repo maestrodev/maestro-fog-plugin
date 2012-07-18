@@ -3,8 +3,8 @@
 
 Currently supporting
 
- * [Rackspace](#Rackspace)
- * [VMWare vSphere](vSphere)
+ * [Rackspace](#rackspace)
+ * [VMWare vSphere](#vsphere)
 
 After the VMs/instances are started, the plugin can execute **SSH** commands on them. For that to happen sometimes public/private SSH keys need to be configured in the VM or in the plugin fields if possible.
 
