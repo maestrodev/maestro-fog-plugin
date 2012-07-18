@@ -1,6 +1,7 @@
 # Copyright 2012© MaestroDev.  All rights reserved.
 
 require 'spec_helper'
+require 'v_sphere_worker'
 
 # connection.servers output in vSphere 5 test is a bit different than the Fog test data
 #
@@ -97,7 +98,7 @@ describe MaestroDev::VSphereWorker do
       @worker.provision
 
       wi.fields['__error__'].should eq(nil)
-      wi.fields['vsphere_host'].should eq(@host)
+      wi.fields['vsphere_server'].should eq(@host)
       wi.fields['vsphere_username'].should eq(@username)
       wi.fields['vsphere_password'].should eq(@password)
       wi.fields['vsphere_ids'].should eq(["50323f93-6835-1178-8b8f-9e2109890e1a"])
@@ -126,14 +127,14 @@ describe MaestroDev::VSphereWorker do
 
     it 'should deprovision a machine' do
       wi = Ruote::Workitem.new({"fields" => @fields})
+      @worker.stub(:workitem => wi.to_h)
 
-      connection = connect()
+      connection = connect
       stubs = connection.servers.find_all {|s| @fields["vsphere_ids"].include?(s.id)}
 
       servers = double("servers")
       connection.stub(:servers => servers)
       @worker.stub(:connect => connection)
-      @worker.stub(:workitem => wi.to_h)
 
       stubs.each do |s|
         servers.should_receive(:get).once.with(s.id).and_return(s)
@@ -149,18 +150,17 @@ describe MaestroDev::VSphereWorker do
     it 'should stop machine before deprovisioning' do
       id = "5032c8a5-9c5e-ba7a-3804-832a03e16381"
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"vsphere_ids" => [id]})})
+      @worker.stub(:workitem => wi.to_h)
 
-      connection = connect()
+      connection = connect
       stub = connection.servers.find {|s| id == s.id}
 
       servers = double("servers")
       connection.stub(:servers => servers)
       @worker.stub(:connect => connection)
-      @worker.stub(:workitem => wi.to_h)
 
       servers.should_receive(:get).with(id).and_return(stub)
       stub.ready?.should == true
-      stub.should_receive(:stop).once
       stub.should_receive(:destroy).once
 
       @worker.deprovision

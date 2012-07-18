@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.maestrodev</groupId>
-  <artifactId>maestro-vsphere-plugin</artifactId>
+  <artifactId>maestro-fog-plugin</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>maestro-vsphere-plugin</name>
+  <name>maestro-fog-plugin</name>
   <packaging>zip</packaging>
 
   <scm>
-    <developerConnection>scm:git:git@github.com:maestrodev/maestro-vsphere-plugin.git</developerConnection>
-    <connection>scm:git:git@github.com:maestrodev/maestro-vsphere-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:maestrodev/maestro-fog-plugin.git</developerConnection>
+    <connection>scm:git:git@github.com:maestrodev/maestro-fog-plugin.git</connection>
   </scm>
 
   <distributionManagement>

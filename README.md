@@ -1,13 +1,11 @@
-# maestro-vsphere-plugin
-Maestro plugin providing a "task" to provision instances with vSphere. This
+# maestro-fog-plugin
+Maestro plugin providing tasks to provision instances with fog. This
 plugin is a Ruby-based deployable that gets delivered as a ZIP file.
 
+Currently supporting
 
-Manifest:
-
-* src/vsphere_worker.rb
-* manifest.json
-* README.md (this file)
+ * Rackspace
+ * VMWare vSphere
 
 
 ## License
