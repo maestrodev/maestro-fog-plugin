@@ -16,6 +16,21 @@ After the VMs/instances are started, the plugin can execute **SSH** commands on 
 * private_key: SSH private key content (if not using private_key_path)
 * private_key_path: SSH private key path (if not using private_key). The file must exist in the agents and path must be accessible from the agents that run the task.
 
+# Outputs
+All provision tasks will set some fields that can be reused in later tasks using Ruby syntax.
+
+* **fields[:provider_name_ips]**: array with the ips of the servers started (ie. fields[rackspace_ips])
+* **fields[:provider_name_ids]**: array with the ids of the servers started(ie. fields[rackspace_ids])
+
+For instance you can add a confirmation task that will display the ips of the vms
+
+	Servers started at #{fields[:rackspace_ips].join(', ')}
+	
+Or to display urls to those vms
+
+	Servers available at #{fields[:rackspace_ips].map { |ip| 'http://' + ip + ':8080'}.join(', ')}
+
+
 # Rackspace
 * **username**: Rackspace account username
 * **api_key**: Rackspace account api key
