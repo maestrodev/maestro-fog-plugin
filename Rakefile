@@ -43,8 +43,8 @@ task :package do
   f = File.open("pom.xml")
   doc = Nokogiri::XML(f.read)
   f.close
-  artifactId = doc.css('artifactId').text
-  version = doc.css('version').text
+  artifactId = doc.css('artifactId').first.text
+  version = doc.css('version').first.text
   
   sh "zip -r #{artifactId}-#{version}.zip src vendor LICENSE README.md manifest.json" do |ok, res|
     fail "Failed to create zip file" unless ok
