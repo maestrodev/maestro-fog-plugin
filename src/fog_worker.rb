@@ -194,7 +194,6 @@ module MaestroDev
             msg = "VM with id '#{id}' not found, ignoring"
             Maestro.log.warn msg
             write_output("#{msg}\n")
-            set_error msg
           else
             s.destroy
           end
