@@ -20,6 +20,7 @@
       "inputs" :  {
         "username":        {"required":true, "type":"String",  "value":""},
         "api_key":         {"required":true, "type":"Password","value":""},
+        "auth_url":        {"required":false,"type":"String",  "value":""},
         "image_id":        {"required":true, "type":"Integer", "value":49},
         "flavor_id":       {"required":true, "type":"Integer", "value":1},
 
