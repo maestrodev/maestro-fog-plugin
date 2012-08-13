@@ -37,7 +37,23 @@
         "rackspace_ids": {"type" : "Array"}
       },
       "tool_name":"Cloud"
-    }
+    },
+    "source_types": [
+      {
+        "name" : "rackspace",
+        "options" : {
+          "username": "",
+          "api_key": "",
+          "auth_url": "",
+          "image_id": null,
+          "flavor_id": null,
+          "ssh_user": "root",
+          "ssh_commands": [],
+          "public_key": "",
+          "private_key": "",
+          "private_key_path": ""
+        }
+      }]
   },
   {
     "name" : "rackspace deprovision",
@@ -105,7 +121,22 @@
         "vsphere_ids": {"type" : "Array"}
       },
       "tool_name":"Cloud"
-    }
+    },
+    "source_types": [
+      {
+        "name" : "vsphere",
+        "options" : {
+          "host": "",
+          "datacenter": "ha-datacenter",
+          "username": "",
+          "password": "",
+          "template_name": "",
+          "ssh_user": "root",
+          "ssh_commands": [],
+          "private_key": "",
+          "private_key_path": ""
+        }
+      }]
   },
   {
     "name" : "vsphere deprovision",
