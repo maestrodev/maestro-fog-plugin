@@ -42,16 +42,16 @@
       {
         "name" : "rackspace",
         "options" : {
-          "username": "",
-          "api_key": "",
-          "auth_url": "",
-          "image_id": null,
-          "flavor_id": null,
-          "ssh_user": "root",
-          "ssh_commands": [],
-          "public_key": "",
-          "private_key": "",
-          "private_key_path": ""
+          "username": "String",
+          "api_key": "Password",
+          "auth_url": "String",
+          "image_id": "Integer",
+          "flavor_id": "Integer",
+          "ssh_user": "String",
+          "ssh_commands": "Array",
+          "public_key": "String",
+          "private_key": "String",
+          "private_key_path": "String"
         }
       }]
   },
@@ -126,15 +126,15 @@
       {
         "name" : "vsphere",
         "options" : {
-          "host": "",
-          "datacenter": "ha-datacenter",
-          "username": "",
-          "password": "",
-          "template_name": "",
-          "ssh_user": "root",
-          "ssh_commands": [],
-          "private_key": "",
-          "private_key_path": ""
+          "host": "String",
+          "datacenter": "String",
+          "username": "String",
+          "password": "String",
+          "template_name": "String",
+          "ssh_user": "String",
+          "ssh_commands": "Array",
+          "private_key": "String",
+          "private_key_path": "String"
         }
       }]
   },
