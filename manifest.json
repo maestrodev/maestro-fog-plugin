@@ -48,7 +48,6 @@
           "image_id": "Integer",
           "flavor_id": "Integer",
           "ssh_user": "String",
-          "ssh_commands": "Array",
           "public_key": "String",
           "private_key": "String",
           "private_key_path": "String"
@@ -132,7 +131,6 @@
           "password": "String",
           "template_name": "String",
           "ssh_user": "String",
-          "ssh_commands": "Array",
           "private_key": "String",
           "private_key_path": "String"
         }
