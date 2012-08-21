@@ -11,6 +11,7 @@ group :development do
   gem 'rake'
   gem 'zippy'
   gem 'nokogiri'
+  gem 'git'
 end
 
 group :test do

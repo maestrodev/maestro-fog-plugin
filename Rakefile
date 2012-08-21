@@ -1,8 +1,9 @@
 require 'rake/clean'
 require 'rspec/core/rake_task'
 require 'zippy'
-require 'pp'
+require 'git'
 require 'nokogiri'
+require 'JSON'
 
 $:.push File.expand_path("../src", __FILE__)
 
@@ -45,6 +46,14 @@ task :package do
   f.close
   artifactId = doc.css('artifactId').first.text
   version = doc.css('version').first.text
+  
+  commit = Git.open(".").log.first.sha[0..5]
+
+  # update manifest
+  file = "manifest.json.template"
+  manifest = JSON.parse(IO.read( "manifest.json.template" ))
+  manifest.each { |m| m['version'] = "#{version}-#{commit}" }
+  File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
   
   sh "zip -r #{artifactId}-#{version}.zip src vendor LICENSE README.md manifest.json" do |ok, res|
     fail "Failed to create zip file" unless ok
