@@ -18,19 +18,19 @@
     "task":{
       "command" : "/rackspace/provision",
       "inputs" :  {
-        "username":        {"required":true, "type":"String",  "value":""},
-        "api_key":         {"required":true, "type":"Password","value":""},
-        "auth_url":        {"required":false,"type":"String",  "value":""},
+        "username":        {"required":true, "type":"String",  "value":null},
+        "api_key":         {"required":true, "type":"Password","value":null},
+        "auth_url":        {"required":false,"type":"String",  "value":null},
         "image_id":        {"required":true, "type":"Integer", "value":49},
         "flavor_id":       {"required":true, "type":"Integer", "value":1},
 
-        "name":            {"required":false,"type":"String",  "value":""},
+        "name":            {"required":false,"type":"String",  "value":null},
         "number_of_vms":   {"required":true, "type":"Integer", "value":1},
         "ssh_user":        {"required":false,"type":"String",  "value":"root"},
         "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
-        "public_key":      {"required":false,"type":"String",  "value":""},
-        "private_key":     {"required":false,"type":"String",  "value":""},
-        "private_key_path":{"required":false,"type":"String",  "value":""}
+        "public_key":      {"required":false,"type":"String",  "value":null},
+        "private_key":     {"required":false,"type":"String",  "value":null},
+        "private_key_path":{"required":false,"type":"String",  "value":null}
       },
       "outputs" : {
         "rackspace_ips": {"type" : "Array"},
@@ -104,16 +104,16 @@
       "inputs" :  {
         "host":            {"required":true, "type":"String",  "value":"localhost"},
         "datacenter":      {"required":true, "type":"String",  "value":"ha-datacenter"},
-        "username":        {"required":true, "type":"String",  "value":""},
-        "password":        {"required":true, "type":"Password","value":""},
-        "template_name":   {"required":true, "type":"String",  "value":""},
+        "username":        {"required":true, "type":"String",  "value":null},
+        "password":        {"required":true, "type":"Password","value":null},
+        "template_name":   {"required":true, "type":"String",  "value":null},
 
-        "name":            {"required":false,"type":"String",  "value":""},
+        "name":            {"required":false,"type":"String",  "value":null},
         "number_of_vms":   {"required":true, "type":"Integer", "value":1},
         "ssh_user":        {"required":false,"type":"String",  "value":"root"},
         "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
-        "private_key":     {"required":false,"type":"String",  "value":""},
-        "private_key_path":{"required":false,"type":"String",  "value":""}
+        "private_key":     {"required":false,"type":"String",  "value":null},
+        "private_key_path":{"required":false,"type":"String",  "value":null}
       },
       "outputs" : {
         "vsphere_ips": {"type" : "Array"},
