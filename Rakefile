@@ -35,8 +35,8 @@ task :package do
   commit = Git.open(".").log.first.sha[0..5]
 
   # update manifest
-  file = "manifest.json.template"
-  manifest = JSON.parse(IO.read( "manifest.json.template" ))
+  file = "manifest.template.json"
+  manifest = JSON.parse(IO.read( "manifest.template.json" ))
   manifest.each { |m| m['version'] = "#{version}-#{commit}" }
   File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
   
