@@ -125,6 +125,8 @@ module MaestroDev
 
       number_of_vms = get_field('number_of_vms') || 1
 
+      has_private_ips = false
+
       (1..number_of_vms).each do |i|
         # create the server in the cloud provider
         s = create_server(connection, number_of_vms, i)
@@ -135,8 +137,15 @@ module MaestroDev
           set_error msg
         end
         return if s.nil?
+        if !s.addresses.nil? && !s.addresses["private"].nil?
+          private_addr = s.addresses["private"][0]["addr"]
+          has_private_ips = true
+        else
+          private_addr = ''
+        end
 
-        msg = "Started VM '#{s.name}' with ip '#{s.public_ip_address}'"
+        msg = "Started VM '#{s.name}' with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'"
+
         Maestro.log.info msg
         write_output("#{msg}\n")
 
@@ -152,6 +161,10 @@ module MaestroDev
       set_error(errors.join("\n")) unless errors.empty?
 
       # save some values in the workitem so they are accessible for deprovision and other tasks
+      # addresses={"private"=>[{"version"=>4, "addr"=>"10.20.0.37"}]},
+      if (has_private_ips)
+        set_field("#{provider}_private_ips", servers.map { |s| s.addresses["private"][0]["addr"]})
+      end
       set_field("#{provider}_ips", servers.map {|s| s.public_ip_address})
       set_field("#{provider}_ids", servers.map {|s| s.id})
 
