@@ -16,15 +16,15 @@ describe MaestroDev::OpenstackWorker do
     Fog.mock!
     @worker = MaestroDev::OpenstackWorker.new
 
-    @api_key = "faclilra"
-    @username = "epelletier"
-    @image_id = "74f689e3-8789-4852-8536-c6d36a4abce2"
-    @auth_url = "http://mc.la-1-20.morphlabs.com:35357/v2.0/tokens"
+    @api_key = "myapi"
+    @username = "johndoe"
+    @image_id = "abc-123-def-456"
+    @auth_url = "http://demo.openstack.org:35357/v2.0/tokens"
     @flavor_id = "2"
     @name = "spec"
     @key_name = "default"
     @sec_group = "default"
-    @tenant = "Amex"
+    @tenant = "demo"
 
   end
 
