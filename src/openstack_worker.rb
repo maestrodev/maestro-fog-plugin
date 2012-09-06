@@ -10,7 +10,7 @@ module MaestroDev
     end
 
     def required_fields
-      ['username', 'api_key', 'tenant', 'auth_url', 'image_id', 'flavor_id']
+      ['auth_url', 'tenant', 'username', 'api_key', 'image_id', 'flavor_id']
     end
 
     def connect_options
@@ -34,7 +34,6 @@ module MaestroDev
       if !base_name.nil? && !base_name.empty?
         name = number_of_vms > 1 ? "#{base_name}-#{i}" : base_name
       end
-      ssh_user = get_field('ssh_user') || "root"
 
       msg = "Creating server '#{name}' from image #{image_id}"
       Maestro.log.info msg

@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'rackspace_worker'
 
-describe MaestroDev::RackspaceWorker do
+describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
 
   def connect
     Fog::Compute.new(

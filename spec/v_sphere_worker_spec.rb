@@ -46,7 +46,7 @@ require 'v_sphere_worker'
 #     cpus=1
 #   >]
 
-describe MaestroDev::VSphereWorker do
+describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
 
   def connect
     Fog::Compute.new(
