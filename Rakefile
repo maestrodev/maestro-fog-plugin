@@ -2,7 +2,6 @@ require 'rake/clean'
 require 'rspec/core/rake_task'
 require 'git'
 require 'nokogiri'
-require 'JSON'
 
 $:.push File.expand_path("../src", __FILE__)
 
