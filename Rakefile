@@ -40,7 +40,7 @@ task :package do
   manifest.each { |m| m['version'] = "#{version}-#{commit}" }
   File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
   
-  sh "zip -r #{artifactId}-#{version}.zip src vendor LICENSE README.md manifest.json" do |ok, res|
+  sh "zip -r #{artifactId}-#{version}.zip src vendor images LICENSE README.md manifest.json" do |ok, res|
     fail "Failed to create zip file" unless ok
   end
 end

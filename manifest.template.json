@@ -34,7 +34,8 @@
         "openstack_ips": {"type" : "Array"},
         "openstack_ids": {"type" : "Array"}
       },
-      "tool_name":"Cloud"
+      "tool_name":"Cloud",
+      "icon":"openstack.png"
     },
     "source_types": [
       {
@@ -71,7 +72,8 @@
       "inputs" :  {
       },
       "outputs" : {},
-      "tool_name":"Cloud"
+      "tool_name":"Cloud",
+      "icon":"openstack.png"
     }
   },
   /* ************************************ Rackspace ************************************ */
