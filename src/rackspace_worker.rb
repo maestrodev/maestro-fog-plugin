@@ -13,10 +13,6 @@ module MaestroDev
       ['username', 'api_key']
     end
 
-    def name_split_char
-      ""
-    end
-
     def connect_options
       opts = {
         :rackspace_username => get_field('username'),
