@@ -1,6 +1,6 @@
 source :rubygems
 
-gem 'maestro_agent', '~>1.0.0.snapshot'
+gem 'maestro_agent', '~>1.2.0'
 
 #dependencies
 gem "fog", ">=0.11.0"
