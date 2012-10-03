@@ -39,6 +39,16 @@ module MaestroDev
       Fog::Compute.new(opts.merge(:provider => provider))
     end
 
+    # character to use to split names with random_name
+    def name_split_char
+      "-"
+    end
+
+    # create 5 random chars if name not provided
+    def random_name(basename = "maestro")
+      "#{basename}#{name_split_char}#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
+    end
+
     # returns an array with errors, or empty if successful
     def provision_execute(s)
       commands = get_field('ssh_commands')
@@ -127,9 +137,18 @@ module MaestroDev
 
       has_private_ips = false
 
+      name = get_field('name')
+      existing_names = connection.servers.map {|s| s.name} if !name.nil? and number_of_vms==1
+
       (1..number_of_vms).each do |i|
+
+        # guarantee unique name if name is specified but taken already or launching more than 1 vm
+        if !name.nil? and (number_of_vms > 1 or existing_names.include?(name))
+          name = random_name(name)
+        end
+
         # create the server in the cloud provider
-        s = create_server(connection, number_of_vms, i)
+        s = create_server(connection, name)
 
         if s.nil? && get_field("__error__").nil?
           msg = "Failed to create VM"
@@ -137,7 +156,7 @@ module MaestroDev
           set_error msg
         end
         return if s.nil?
-        if !s.addresses.nil? && !s.addresses["private"].nil?
+        if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
           private_addr = s.addresses["private"][0]["addr"]
           has_private_ips = true
         else

@@ -61,16 +61,15 @@ module MaestroDev
       }
     end
 
-    def create_server(connection, number_of_vms, i)
+    def name_split_char
+      "_"
+    end
+
+    def create_server(connection, name)
       datacenter = get_field('datacenter')
       template_name = get_field('template_name')
-      vm_name = get_field('name')
-      if vm_name.nil? || vm_name.empty?
-        # create 5 random chars if name not provided
-        vm_name = "maestro_#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
-      end
 
-      name = number_of_vms > 1 ? "#{vm_name}#{i}" : vm_name
+      name = random_name if name.nil? || name.empty?
 
       msg = "Cloning VM #{template_name} into #{name}"
       Maestro.log.info msg

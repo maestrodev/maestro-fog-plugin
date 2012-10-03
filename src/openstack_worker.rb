@@ -23,17 +23,12 @@ module MaestroDev
       return opts
     end
 
-    def create_server(connection, number_of_vms, i)
+    def create_server(connection, name)
       image_id = get_field('image_id')
       flavor_id = get_field('flavor_id')
-      base_name = get_field('name')
       key_name = get_field('key_name')
       tenant_id = get_field('tenant')
       security_group = get_field('security_group')
-
-      if !base_name.nil? && !base_name.empty?
-        name = number_of_vms > 1 ? "#{base_name}-#{i}" : base_name
-      end
 
       msg = "Creating server '#{name}' from image #{image_id}"
       Maestro.log.info msg

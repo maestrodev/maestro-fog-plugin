@@ -69,7 +69,7 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
     #   wi.fields['__error__'].should eq("Image id '999999' flavor '1' not found")
     # end
 
-    it 'should provision a machine' do
+    it 'should provision a machine in a different endpoint' do
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"auth_url" => @auth_url})})
       @worker.stub(:workitem => wi.to_h)
       @worker.provision

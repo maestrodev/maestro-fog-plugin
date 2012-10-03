@@ -13,6 +13,10 @@ module MaestroDev
       ['username', 'api_key']
     end
 
+    def name_split_char
+      ""
+    end
+
     def connect_options
       opts = {
         :rackspace_username => get_field('username'),
@@ -23,13 +27,10 @@ module MaestroDev
       return opts
     end
 
-    def create_server(connection, number_of_vms, i)
+    def create_server(connection, name)
       image_id = get_field('image_id')
       flavor_id = get_field('flavor_id')
-      base_name = get_field('name')
-      if !base_name.nil? && !base_name.empty?
-        name = number_of_vms > 1 ? "#{base_name}#{i}" : base_name
-      end
+
       ssh_user = get_field('ssh_user') || "root"
       public_key = get_field('public_key')
 
