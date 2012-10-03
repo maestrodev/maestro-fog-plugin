@@ -1,0 +1,56 @@
+{
+  "name" : "openstack provision",
+  "description" : "Provision servers on an OpenStack cloud.<br>[auth_url] the URL where the autentication service can be reached (eg http://hostname:35357/v2.0/tokens.)<br>[tenant] the OpenStack tenant (aka project)<br>[username] OpenStack username<br>[api_key] OpenStack password<br>[image_id] id of the image to use.<br>[flavor_id] Flavor id that defines ram, cpu,...<br>[name] name of the started vm<br>[number_of_vms] number of instances to start<br>[ssh_commands] commands to execute in the server once it is started<br>[key_name] the name of the ssh public key to copy to the server.<br>[security_group] the name of the security group to add this VM to.<br>",
+  "license" : "Apache 2.0",
+  "author": "Etienne Pelletier",
+  "version": "updated at build time",
+  "class": "MaestroDev::OpenstackWorker",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.6.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "command" : "/openstack/provision",
+    "inputs" :  {
+      "auth_url":        {"required":true,"type":"String",  "value":null},
+      "tenant":          {"required":true,"type":"String",  "value":null},
+      "username":        {"required":true, "type":"String",  "value":null},
+      "api_key":         {"required":true, "type":"Password","value":null},
+      "image_id":        {"required":true, "type":"String", "value":null},
+      "flavor_id":       {"required":true, "type":"String", "value":null},
+      "name":            {"required":false,"type":"String",  "value":null},
+      "number_of_vms":   {"required":true, "type":"Integer", "value":1},
+      "key_name":        {"required":false,"type":"String",  "value":null},
+      "security_group":  {"required":false,"type":"String",  "value":null}
+    },
+    "outputs" : {
+      "openstack_private_ips": {"type" : "Array"},
+      "openstack_ips": {"type" : "Array"},
+      "openstack_ids": {"type" : "Array"}
+    },
+    "tool_name":"Cloud",
+    "icon":"openstack.png"
+  },
+  "source_types": [
+    {
+      "name" : "openstack",
+      "options" : {
+        "auth_url": "String",
+        "tenant": "String",
+        "username": "String",
+        "api_key": "Password",
+        "image_id": "String",
+        "flavor_id": "String",
+        "key_name": "String",
+        "security_group": "String",
+
+        "ssh_user": "String",
+        "private_key": "String",
+        "private_key_path": "String"
+      }
+    }]
+}

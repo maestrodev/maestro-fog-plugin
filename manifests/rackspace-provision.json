@@ -1,0 +1,57 @@
+{
+  "name" : "rackspace provision",
+  "description" : "Provision servers in Rackspace.<br>[username] Rackspace username<br>[api_key] Rackspace api key<br>[image_id] id of the image to use (ie. 49 for Ubuntu)<br>[flavor_id] Flavor id that defines ram, cpu,...<br>[name] name of the started vm<br>[number_of_vms] number of instances to start<br>[ssh_user] username to use for ssh connection<br>[ssh_commands] commands to execute in the server once it is started<br>[public_key] ssh public key to copy to the server<br>[private_key] ssh private key content to use to connect to the server<br>[private_key_path] ssh private key path in the agent to use to connect to the server (instead of private_key content)",
+  "license" : "Apache 2.0",
+  "author": "Carlos Sanchez",
+  "version": "updated at build time",
+  "class": "MaestroDev::RackspaceWorker",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.6.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "command" : "/rackspace/provision",
+    "inputs" :  {
+      "username":        {"required":true, "type":"String",  "value":null},
+      "api_key":         {"required":true, "type":"Password","value":null},
+      "auth_url":        {"required":false,"type":"String",  "value":null},
+      "image_id":        {"required":true, "type":"Integer", "value":49},
+      "flavor_id":       {"required":true, "type":"Integer", "value":1},
+      "public_key":      {"required":false,"type":"String",  "value":null},
+
+      "name":            {"required":false,"type":"String",  "value":null},
+      "number_of_vms":   {"required":true, "type":"Integer", "value":1},
+      "ssh_user":        {"required":false,"type":"String",  "value":"root"},
+      "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
+      "private_key":     {"required":false,"type":"String",  "value":null},
+      "private_key_path":{"required":false,"type":"String",  "value":null}
+    },
+    "outputs" : {
+      "rackspace_ips": {"type" : "Array"},
+      "rackspace_ids": {"type" : "Array"}
+    },
+    "tool_name":"Cloud",
+    "icon":"rackspace.png"
+  },
+  "source_types": [
+    {
+      "name" : "rackspace",
+      "options" : {
+        "username": "String",
+        "api_key": "Password",
+        "auth_url": "String",
+        "image_id": "Integer",
+        "flavor_id": "Integer",
+        "public_key": "String",
+
+        "ssh_user": "String",
+        "private_key": "String",
+        "private_key_path": "String"
+      }
+    }
+  ]
+}

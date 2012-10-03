@@ -1,0 +1,24 @@
+{
+  "name" : "rackspace deprovision",
+  "description" : "Deprovision servers in Rackspace. Deprovisions all servers started in a previous provision tasks.",
+  "license" : "Apache 2.0",
+  "author": "Carlos Sanchez",
+  "version": "updated at build time",
+  "class": "MaestroDev::RackspaceWorker",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.6.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "command" : "/rackspace/deprovision",
+    "inputs" :  {
+    },
+    "outputs" : {},
+    "tool_name":"Cloud",
+    "icon":"rackspace.png"
+  }
+}
