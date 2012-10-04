@@ -89,11 +89,26 @@
 
     },
     "outputs" : {
-      "joyent_private_ips": {"type" : "Array"},
       "joyent_ips": {"type" : "Array"},
       "joyent_ids": {"type" : "Array"}
     },
     "tool_name":"Cloud",
     "icon":"instantservers.png"
-  }
+    },
+  "source_types": [
+    {
+      "name" : "instant servers",
+      "options" : {
+        "username": "String",
+        "password": "Password",
+        "url": "String",
+        "package": "String",
+        "dataset": "String",
+
+        "ssh_user": "String",
+        "private_key": "String",
+        "private_key_path": "String"
+      }
+    }
+  ]
 }
