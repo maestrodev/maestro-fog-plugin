@@ -22,10 +22,15 @@
       "api_key":         {"required":true, "type":"Password","value":null},
       "image_id":        {"required":true, "type":"String", "value":null},
       "flavor_id":       {"required":true, "type":"String", "value":null},
+      "key_name":        {"required":false,"type":"String",  "value":null},
+      "security_group":  {"required":false,"type":"String",  "value":null},
+
       "name":            {"required":false,"type":"String",  "value":null},
       "number_of_vms":   {"required":true, "type":"Integer", "value":1},
-      "key_name":        {"required":false,"type":"String",  "value":null},
-      "security_group":  {"required":false,"type":"String",  "value":null}
+      "ssh_user":        {"required":false,"type":"String",  "value":"root"},
+      "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
+      "private_key":     {"required":false,"type":"String",  "value":null},
+      "private_key_path":{"required":false,"type":"String",  "value":null}
     },
     "outputs" : {
       "openstack_private_ips": {"type" : "Array"},
