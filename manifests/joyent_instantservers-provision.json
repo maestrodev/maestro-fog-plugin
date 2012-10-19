@@ -3,18 +3,7 @@
 {
   "name" : "InstantServers provision",
   "description" : "Provision servers on InstantServers",
-  "license" : "Apache 2.0",
-  "author": "Carlos Sanchez",
-  "version": "updated at build time",
   "class": "MaestroDev::JoyentWorker",
-  "type":"ruby",
-  "dependencies":[
-    {
-      "name" : "fog",
-      "version" : "1.6.0",
-      "source" : "http://rubygems.org/"
-    }
-  ],
   "task":{
     "command" : "/joyent/provision",
     "inputs" :  {
@@ -47,52 +36,12 @@
           "type": "String", 
           "value": "centos-6",
           "description": "The image of the software on your machine. It contains the software packages that will be available on newly provisioned machines. In the case of virtual machines, the dataset also includes the operating system"
-      },
-
-      /* common fields */
-      "name": {
-          "required": false, 
-          "type": "String", 
-          "value": null,
-          "description": "name of the started vm"
-      }, 
-      "number_of_vms": {
-          "required": true, 
-          "type": "Integer", 
-          "value": 1,
-          "description": "number of instances to start"
-      }, 
-      "private_key": {
-          "required": false, 
-          "type": "String", 
-          "value": null,
-          "description": "ssh private key content to use to connect to the server"
-      }, 
-      "private_key_path": {
-          "required": false, 
-          "type": "String", 
-          "value": null,
-          "description": "ssh private key path in the agent to use to connect to the server (instead of private_key content)"
-      }, 
-      "ssh_commands": {
-          "required": false, 
-          "type": "Array", 
-          "value": [],
-          "description": "commands to execute in the server once it is started"
-      }, 
-      "ssh_user": {
-          "required": false, 
-          "type": "String", 
-          "value": "root",
-          "description": "username to use for ssh connection"
       }
-
     },
     "outputs" : {
       "joyent_ips": {"type" : "Array"},
       "joyent_ids": {"type" : "Array"}
     },
-    "tool_name":"Cloud",
     "icon":"instantservers.png"
     },
   "source_types": [
@@ -103,11 +52,7 @@
         "password": "Password",
         "url": "String",
         "package": "String",
-        "dataset": "String",
-
-        "ssh_user": "String",
-        "private_key": "String",
-        "private_key_path": "String"
+        "dataset": "String"
       }
     }
   ]

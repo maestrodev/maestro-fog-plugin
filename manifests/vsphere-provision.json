@@ -1,17 +1,8 @@
 {
   "name" : "vsphere provision",
-  "description" : "Provision servers with VMWare vSphere.<br>[host] vSphere host<br>[datacenter] vSphere datacenter where the server will be created<br>[username] vSphere username<br>[password] vSphere password<br>[template_name] name of the server template to use<br>[name] name of the started vm<br>[number_of_vms] number of instances to start<br>[ssh_user] username to use for ssh connection<br>[ssh_commands] commands to execute in the server once it is started<br>[public_key] ssh public key to copy to the server<br>[private_key] ssh private key content to use to connect to the server<br>[private_key_path] ssh private key path in the agent to use to connect to the server (instead of private_key content)",
-  "license" : "Apache 2.0",
-  "author": "Carlos Sanchez",
-  "version": "updated at build time",
+  "description" : "Provision servers with VMWare vSphere",
   "class": "MaestroDev::VSphereWorker",
-  "type":"ruby",
   "dependencies":[
-    {
-      "name" : "fog",
-      "version" : "1.6.0",
-      "source" : "http://rubygems.org/"
-    },
     {
       "name" : "rbvmomi",
       "version" : "1.5.1",
@@ -21,24 +12,41 @@
   "task":{
     "command" : "/vsphere/provision",
     "inputs" :  {
-      "host":            {"required":true, "type":"String",  "value":"localhost"},
-      "datacenter":      {"required":true, "type":"String",  "value":"ha-datacenter"},
-      "username":        {"required":true, "type":"String",  "value":null},
-      "password":        {"required":true, "type":"Password","value":null},
-      "template_name":   {"required":true, "type":"String",  "value":null},
-
-      "name":            {"required":false,"type":"String",  "value":null},
-      "number_of_vms":   {"required":true, "type":"Integer", "value":1},
-      "ssh_user":        {"required":false,"type":"String",  "value":"root"},
-      "ssh_commands":    {"required":false,"type":"Array",   "value":[]},
-      "private_key":     {"required":false,"type":"String",  "value":null},
-      "private_key_path":{"required":false,"type":"String",  "value":null}
+      "host": {
+        "description": "vSphere host",
+        "required": true, 
+        "type": "String", 
+        "value": "localhost"
+      }, 
+      "datacenter": {
+        "description": "vSphere datacenter where the server will be created",
+        "required": true, 
+        "type": "String", 
+        "value": "ha-datacenter"
+      }, 
+      "username": {
+        "description": "vSphere username",
+        "required": true, 
+        "type": "String", 
+        "value": null
+      },
+      "password": {
+        "description": "vSphere password",
+        "required": true, 
+        "type": "Password", 
+        "value": null
+      }, 
+      "template_name": {
+        "description": "name of the server template to use",
+        "required": true, 
+        "type": "String", 
+        "value": null
+      }
     },
     "outputs" : {
       "vsphere_ips": {"type" : "Array"},
       "vsphere_ids": {"type" : "Array"}
     },
-    "tool_name":"Cloud",
     "icon":"vsphere.png"
   },
   "source_types": [
@@ -49,11 +57,7 @@
         "datacenter": "String",
         "username": "String",
         "password": "String",
-        "template_name": "String",
-
-        "ssh_user": "String",
-        "private_key": "String",
-        "private_key_path": "String"
+        "template_name": "String"
       }
     }
   ]

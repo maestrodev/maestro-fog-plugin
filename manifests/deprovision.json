@@ -1,0 +1,20 @@
+{
+  "license" : "Apache 2.0",
+  "author": "MaestroDev",
+  "version": "updated at build time",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.6.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "inputs" :  {
+    },
+    "outputs" : {},
+    "tool_name":"Cloud",
+    "icon":"cloud.png"
+  }
+}

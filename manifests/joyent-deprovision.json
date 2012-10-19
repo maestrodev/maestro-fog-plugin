@@ -1,24 +1,9 @@
 {
   "name" : "joyent deprovision",
   "description" : "Deprovision servers on Joyent cloud. Deprovisions all servers started in a previous provision task.",
-  "license" : "Apache 2.0",
-  "author": "Carlos Sanchez",
-  "version": "updated at build time",
   "class": "MaestroDev::JoyentWorker",
-  "type":"ruby",
-  "dependencies":[
-    {
-      "name" : "fog",
-      "version" : "1.6.0",
-      "source" : "http://rubygems.org/"
-    }
-  ],
   "task":{
     "command" : "/joyent/deprovision",
-    "inputs" :  {
-    },
-    "outputs" : {},
-    "tool_name":"Cloud",
     "icon":"joyent.png"
   }
 }

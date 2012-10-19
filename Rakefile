@@ -34,18 +34,10 @@ task :package do
   
   commit = Git.open(".").log.first.sha[0..5]
 
-  # update manifest
-  files = FileList["manifests/*.json"]
+  # merge manifests into manifest.json
   manifest = []
-  files.each do |f|
-    puts "Parsing #{f}"
-    json = JSON.parse(IO.read(f))
-    if json.kind_of? Array
-      manifest.concat(json)
-    else
-      manifest << json
-    end
-  end
+  merge_manifests(manifest, "provision")
+  merge_manifests(manifest, "deprovision")
   manifest.each { |m| m['version'] = "#{version}-#{commit}" }
   File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
   
@@ -56,3 +48,25 @@ end
 
 desc "Run a clean build"
 task :all => [:clean, :bundle, :spec, :package]
+
+# Parse all partial manifests and merge them
+def merge_manifests(manifest, action)
+  files = FileList["manifests/*-#{action}.json"]
+  parent = JSON.parse(IO.read("manifests/#{action}.json"))
+  files.each do |f|
+    puts "Parsing #{f}"
+    manifest << merge_manifest(parent, JSON.parse(IO.read(f)))
+  end
+end
+
+def merge_manifest(parent, json)
+  json.merge(parent) do |key, jsonval, parentval|
+    if parentval.kind_of?(Hash) 
+      merged = merge_manifest(parentval, jsonval)
+    elsif parentval.kind_of?(Array)
+      jsonval.map {|i| i.kind_of?(Hash) ? merge_manifest(parentval.first, i) : jsonval}
+    else
+      jsonval
+    end
+  end
+end
