@@ -31,6 +31,9 @@ module MaestroDev
       tenant_id = get_field('tenant')
       security_group = get_field('security_group')
 
+      ssh_user = get_field('ssh_user') || "root"
+      public_key = get_field('public_key')
+
       msg = "Creating server '#{name}' from image #{image_id}"
       Maestro.log.info msg
       write_output("#{msg}\n")
@@ -41,6 +44,7 @@ module MaestroDev
           :name => name,
           :flavor_ref => flavor_id,
           :key_name => key_name,
+          :public_key => public_key,
           :security_group => security_group,
           :tenant_id => tenant_id
         }

@@ -53,6 +53,12 @@
           "type": "String", 
           "value": null
       }, 
+      "public_key": {
+        "description": "public key content to copy to the server as authorized key",
+        "required": false, 
+        "type": "String", 
+        "value": null
+      },
       "security_group": {
           "description": "the name of the security group to add this VM to",
           "required": false, 
@@ -78,6 +84,7 @@
         "image_id": "String",
         "flavor_id": "String",
         "key_name": "String",
+        "public_key": "String",
         "security_group": "String"
       }
     }]
