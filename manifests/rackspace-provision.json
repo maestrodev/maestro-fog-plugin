@@ -35,6 +35,12 @@
         "type": "String", 
         "value": null
       }, 
+      "version": {
+        "description": "API version to use: v1 (default) or v2 for Open Cloud Servers",
+        "required": false, 
+        "type": "String", 
+        "value": null
+      }, 
       "public_key": {
         "description": "public key content to copy to the server as authorized key",
         "required": false, 

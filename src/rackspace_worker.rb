@@ -16,7 +16,8 @@ module MaestroDev
     def connect_options
       opts = {
         :rackspace_username => get_field('username'),
-        :rackspace_api_key  => get_field('api_key')
+        :rackspace_api_key  => get_field('api_key'),
+        :version => get_field('version')
       }
       auth_url = get_field('auth_url')
       opts.merge!({:rackspace_auth_url => auth_url}) if !auth_url.nil? && !auth_url.empty?
