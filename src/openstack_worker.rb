@@ -18,7 +18,8 @@ module MaestroDev
           :openstack_auth_url => get_field('auth_url'),
           :openstack_tenant => get_field('tenant'),
           :openstack_username => get_field('username'),
-          :openstack_api_key => get_field('api_key')
+          :openstack_api_key => get_field('api_key'),
+          :openstack_region => get_field('region')
       }
       return opts
     end
@@ -43,6 +44,7 @@ module MaestroDev
           :security_group => security_group,
           :tenant_id => tenant_id
         }
+
         s = connection.servers.create(options)
         s.wait_for { ready? }
       rescue Fog::Errors::NotFound => e

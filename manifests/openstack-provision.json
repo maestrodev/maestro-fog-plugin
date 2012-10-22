@@ -29,6 +29,12 @@
           "type": "Password", 
           "value": null
       }, 
+      "region": {
+          "description": "region identifier, may be required for some providers", 
+          "required": false, 
+          "type": "String", 
+          "value": null
+      }, 
       "image_id": {
           "description": "id of the image to use",
           "required": true, 
