@@ -182,10 +182,16 @@ module MaestroDev
       # save some values in the workitem so they are accessible for deprovision and other tasks
       # addresses={"private"=>[{"version"=>4, "addr"=>"10.20.0.37"}]},
       if (has_private_ips)
-        set_field("#{provider}_private_ips", servers.map { |s| s.addresses["private"][0]["addr"]})
+        private_ips = servers.map { |s| s.addresses["private"][0]["addr"] }
+        set_field("#{provider}_private_ips", private_ips)
+        set_field("cloud_private_ips", private_ips.concat(get_field("cloud_private_ips") || []))
       end
-      set_field("#{provider}_ips", servers.map {|s| s.public_ip_address})
-      set_field("#{provider}_ids", servers.map {|s| s.id})
+      ips = servers.map {|s| s.public_ip_address}
+      ids = servers.map {|s| s.id}
+      set_field("#{provider}_ips", ips)
+      set_field("#{provider}_ids", ids)
+      set_field("cloud_ips", ips.concat(get_field("cloud_ips") || []))
+      set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
 
       msg = "Maestro #{provider} provision complete!"
       Maestro.log.debug msg
