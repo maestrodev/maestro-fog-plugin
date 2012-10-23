@@ -29,8 +29,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
         "params" => {"command" => "provision"},
         "username" => @username,
         "api_key" => @api_key,
-        "image_id" => @image_id,
-        "ssh_commands" => ["hostname"]
+        "image_id" => @image_id
       }
     end
 

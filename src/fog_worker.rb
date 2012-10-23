@@ -30,6 +30,16 @@ module MaestroDev
       raise "Need to extend connect_options method!"
     end
 
+    # create and return the server object. Don't wait for it to be ready
+    def create_server(connection, name)
+      raise "Need to extend create_server method!"
+    end
+
+    # configure public keys if needed when server is up
+    def setup_server(s)
+      # noop
+    end
+
     def connect
       opts = get_field("#{provider}_connect_options")
       if opts.nil?
@@ -50,11 +60,7 @@ module MaestroDev
     end
 
     # returns an array with errors, or empty if successful
-    def provision_execute(s)
-      commands = get_field('ssh_commands')
-      s.username = get_field('ssh_user') || "root"
-      s.private_key = get_field("private_key")
-      s.private_key_path = get_field("private_key_path")
+    def provision_execute(s, commands)
       host = s.public_ip_address
 
       errors = []
@@ -135,11 +141,26 @@ module MaestroDev
 
       number_of_vms = get_field('number_of_vms') || 1
 
+      # validate ssh options
+      commands = get_field('ssh_commands')
+      username = get_field('ssh_user') || "root"
+      private_key = get_field("private_key")
+      private_key_path = get_field("private_key_path")
+      if !(commands.nil? or commands.empty?)
+        if private_key.nil? and private_key_path.nil?
+          msg = "private_key or private_key_path is required for SSH"
+          Maestro.log.error msg
+          set_error msg
+          return
+        end
+      end
+
       has_private_ips = false
 
       name = get_field('name')
       existing_names = connection.servers.map {|s| s.name} if !name.nil? and number_of_vms==1
 
+      # start the servers
       (1..number_of_vms).each do |i|
 
         # guarantee unique name if name is specified but taken already or launching more than 1 vm
@@ -155,7 +176,27 @@ module MaestroDev
           Maestro.log.error msg
           set_error msg
         end
-        return if s.nil?
+        break if s.nil?
+
+        msg = "Started VM '#{s.name}' with id '#{s.id}'"
+        Maestro.log.info msg
+        write_output("#{msg}\n")
+
+        servers << s
+      end
+
+      # save server ids for deprovisioning
+      ids = servers.map {|s| s.id}
+      set_field("#{provider}_ids", ids)
+      set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
+
+      # if there was an error provisioning one of the servers, return
+      return if !get_field("__error__").nil?
+
+      # wait for servers to be up and set them up
+      servers.each do |s|
+        s.wait_for { ready? }
+
         if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
           private_addr = s.addresses["private"][0]["addr"]
           has_private_ips = true
@@ -164,20 +205,16 @@ module MaestroDev
         end
 
         msg = "Started VM '#{s.name}' with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'"
-
         Maestro.log.info msg
         write_output("#{msg}\n")
 
-        servers << s
+        s.username = username
+        s.private_key = private_key
+        s.private_key_path = private_key_path
+
+        setup_server(s)
       end
 
-      # run provisioning commands through ssh
-      errors = []
-      servers.each do |s|
-        errors << provision_execute(s)
-      end
-      errors.flatten!
-      set_error(errors.join("\n")) unless errors.empty?
 
       # save some values in the workitem so they are accessible for deprovision and other tasks
       # addresses={"private"=>[{"version"=>4, "addr"=>"10.20.0.37"}]},
@@ -187,11 +224,16 @@ module MaestroDev
         set_field("cloud_private_ips", private_ips.concat(get_field("cloud_private_ips") || []))
       end
       ips = servers.map {|s| s.public_ip_address}
-      ids = servers.map {|s| s.id}
       set_field("#{provider}_ips", ips)
-      set_field("#{provider}_ids", ids)
       set_field("cloud_ips", ips.concat(get_field("cloud_ips") || []))
-      set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
+
+      # run provisioning commands through ssh
+      errors = []
+      servers.each do |s|
+        errors << provision_execute(s, commands)
+      end
+      errors.flatten!
+      set_error(errors.join("\n")) unless errors.empty?
 
       msg = "Maestro #{provider} provision complete!"
       Maestro.log.debug msg

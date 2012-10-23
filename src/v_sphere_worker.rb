@@ -82,7 +82,7 @@ module MaestroDev
           'name' => name,
           'path' => path,
           'poweron' => true,
-          'wait' => true)
+          'wait' => false)
       rescue Fog::Errors::NotFound => e
         msg = "VM template '#{path}' not found"
         Maestro.log.error msg
@@ -100,11 +100,6 @@ module MaestroDev
         set_error msg
         return
       end
-
-      msg = "Started VM '#{s.name}' with hostname '#{s.hostname}' and ip '#{s.public_ip_address}'"
-      Maestro.log.info msg
-      write_output("#{msg}\n")
-
       return s
     end
   end

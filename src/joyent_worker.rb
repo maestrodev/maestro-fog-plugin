@@ -77,7 +77,6 @@ module MaestroDev
           :name => name
         }
         s = connection.servers.create(options)
-        s.wait_for { ready? }
       rescue Excon::Errors::Error => e
         error = JSON.parse e.response.body
         msg = "Error #{msg}: #{error['code']} #{error['message']}"

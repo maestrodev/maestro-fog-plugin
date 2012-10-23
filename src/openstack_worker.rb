@@ -44,13 +44,12 @@ module MaestroDev
           :name => name,
           :flavor_ref => flavor_id,
           :key_name => key_name,
+          :username => ssh_user,
           :public_key => public_key,
           :security_group => security_group,
           :tenant_id => tenant_id
         }
-
         s = connection.servers.create(options)
-        s.wait_for { ready? }
       rescue Fog::Errors::NotFound => e
         msg = "Image id '#{image_id}', flavor '#{flavor_id}' not found"
         Maestro.log.error msg
@@ -60,6 +59,13 @@ module MaestroDev
         log("Error creating server from image #{image_id}", e) and return
       end
       return s
+    end
+
+    # copy the public key to the server
+    def setup_server(s)
+      unless s.public_key.nil? || s.public_key.empty?
+        s.setup(:password => s.password)
+      end
     end
   end
 end
