@@ -207,8 +207,8 @@ module MaestroDev
 
       if ids.nil?
         msg = "No servers found to be deprovisioned"
-        Maestro.log.error msg
-        set_error msg
+        Maestro.log.warn msg
+        write_output("#{msg}\n")
         return
       end
 
