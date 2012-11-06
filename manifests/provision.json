@@ -5,8 +5,8 @@
   "type":"ruby",
   "dependencies":[
     {
-      "name" : "fog",
-      "version" : "1.6.0",
+      "name" : "maestrodev-fog",
+      "version" : "1.7.0",
       "source" : "http://rubygems.org/"
     }
   ],
