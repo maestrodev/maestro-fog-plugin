@@ -46,6 +46,12 @@
         "required": false, 
         "type": "String", 
         "value": null
+      },
+      "public_key_path": {
+        "description": "path to public key to copy to the server as authorized key",
+        "required": false, 
+        "type": "String", 
+        "value": "/var/local/maestro-agent/.ssh/id_rsa.pub"
       }
     },
     "outputs" : {

@@ -30,6 +30,10 @@ module MaestroDev
 
       ssh_user = get_field('ssh_user') || "root"
       public_key = get_field('public_key')
+      public_key_path = get_field('public_key_path')
+      if (public_key && public_key_path) 
+        write_output("WARNING: public_key_path is ignored because public_key is defined\n")
+      end
 
       msg = "Creating server '#{name}' from image #{image_id}"
       Maestro.log.info msg
@@ -41,7 +45,8 @@ module MaestroDev
           :image_id => image_id,
           :flavor_id => flavor_id,
           :username => ssh_user,
-          :public_key => public_key
+          :public_key => public_key,
+          :public_key_path => public_key_path
         }
         s = connection.servers.create(attributes)
 
