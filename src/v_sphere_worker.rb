@@ -3,45 +3,6 @@ require 'fog_worker'
 require 'fog'
 require 'fog/compute/models/server'
 
-module Fog
-  module Compute
-    class Vsphere
-
-      # Add missing fields necessary for ssh
-      # Taken from AWS Server
-      class Server < Fog::Compute::Server
-        attribute :public_ip_address,     :aliases => 'ipAddress'
-        attr_writer   :private_key, :private_key_path, :username
-
-        # address used for ssh
-        def public_ip_address
-          ipaddress
-        end
-
-        def username
-          @username ||= 'root'
-        end
-
-        def private_key_path
-          @private_key_path ||= Fog.credentials[:private_key_path]
-          @private_key_path &&= File.expand_path(@private_key_path)
-        end
-
-        def private_key
-          @private_key ||= private_key_path && File.read(private_key_path)
-        end
-
-        def destroy(options = {})
-          requires :instance_uuid
-          stop if ready? # turn off before destroying
-          connection.vm_destroy('instance_uuid' => instance_uuid)
-        end
-      end
-    end
-  end
-end
-
-
 module MaestroDev
   class VSphereWorker < FogWorker
 
