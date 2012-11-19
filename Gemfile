@@ -3,7 +3,7 @@ source :rubygems
 gem 'maestro_agent', '>= 1.2.0'#, :path => "../MaestroAgent/"
 
 #dependencies
-gem "maestrodev-fog", "~>1.7.0.0"
+gem "fog-maestrodev", "~>1.7.0.0"
 gem "rbvmomi", ">=1.3.0"
 
 group :development do

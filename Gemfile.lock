@@ -7,11 +7,22 @@ GEM
     builder (2.1.2)
     columnize (0.3.6)
     diff-lcs (1.1.3)
+    eventmachine (0.12.10)
     eventmachine (0.12.10-java)
-    excon (0.16.7)
+    excon (0.16.10)
     facter (1.6.3)
     file-tail (1.0.12)
       tins (~> 0.5)
+    fog-maestrodev (1.7.0.20121114190951)
+      builder
+      excon (~> 0.14)
+      formatador (~> 0.2.0)
+      mime-types
+      multi_json (~> 1.0)
+      net-scp (~> 1.0.4)
+      net-ssh (>= 2.1.3)
+      nokogiri (~> 1.5.0)
+      ruby-hmac
     formatador (0.2.4)
     git (1.2.5)
     grit (2.4.1)
@@ -19,6 +30,7 @@ GEM
       mime-types (~> 1.15)
     jruby-openssl (0.7.7)
       bouncy-castle-java (>= 1.5.0146.1)
+    json (1.7.5)
     json (1.7.5-java)
     little-plugger (1.1.3)
     logging (1.6.1)
@@ -45,16 +57,6 @@ GEM
       ruote-stomp (= 2.2.2.maestro)
       sexp_processor (= 3.0.9)
       xml-simple (= 1.1.1)
-    maestrodev-fog (1.7.0.20121106112821)
-      builder
-      excon (~> 0.14)
-      formatador (~> 0.2.0)
-      mime-types
-      multi_json (~> 1.0)
-      net-scp (~> 1.0.4)
-      net-ssh (>= 2.1.3)
-      nokogiri (~> 1.5.0)
-      ruby-hmac
     metaclass (0.0.1)
     mime-types (1.19)
     minitar (0.5.3)
@@ -62,6 +64,7 @@ GEM
     net-scp (1.0.4)
       net-ssh (>= 1.99.1)
     net-ssh (2.2.1)
+    nokogiri (1.5.5)
     nokogiri (1.5.5-java)
     onstomp (1.0.5)
     parslet (1.2.1)
@@ -127,9 +130,9 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (= 1.3.0.brettporter)
+  fog-maestrodev (~> 1.7.0.0)
   git
   maestro_agent (>= 1.2.0)
-  maestrodev-fog (~> 1.7.0.0)
   nokogiri
   rake
   rbvmomi (>= 1.3.0)
