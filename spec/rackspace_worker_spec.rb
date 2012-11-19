@@ -18,7 +18,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
 
     @api_key = "myapi"
     @username = "johndoe"
-    @image_id = 49
+    @image_id = "49"
     @auth_url = "lon.auth.api.rackspacecloud.com"
   end
 
@@ -48,7 +48,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
 
     # can't test it with mock
     # it 'should fail when image does not exist' do
-    #   wi = Ruote::Workitem.new({"fields" => @fields.merge({"image_id" => 999999})})
+    #   wi = Ruote::Workitem.new({"fields" => @fields.merge({"image_id" => "999999"})})
     #
     #   @worker.stub(:workitem => wi.to_h)
     #   @worker.provision

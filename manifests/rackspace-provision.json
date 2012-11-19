@@ -17,29 +17,35 @@
         "type": "Password", 
         "value": null
       }, 
+      "version": {
+        "description": "API version to use: v1 or v2 for Open Cloud Servers",
+        "required": false, 
+        "type": "String", 
+        "value": "v2"
+      }, 
+      "endpoint": {
+        "description": "endpoint used for Rackspace v2, choosing the region to use",
+        "required": false, 
+        "type": "String", 
+        "value": "https://dfw.servers.api.rackspacecloud.com/v2"
+      }, 
+      "auth_url": {
+        "description": "authentication endpoint, default to https://auth.api.rackspacecloud.com for US accounts, https://lon.auth.api.rackspacecloud.com for UK ones",
+        "required": false, 
+        "type": "String", 
+        "value": "https://auth.api.rackspacecloud.com"
+      }, 
       "image_id": {
-        "description": "id of the image to use (ie. 49 for Ubuntu)",
+        "description": "id of the image to use (ie. c195ef3b-9195-4474-b6f7-16e5bd86acd0 for CentOS 6.3 in v2)",
         "required": true, 
-        "type": "Integer", 
-        "value": 49
+        "type": "String", 
+        "value": "c195ef3b-9195-4474-b6f7-16e5bd86acd0"
       }, 
       "flavor_id": {
         "description": "Flavor id that defines ram, cpu,...",
         "required": true, 
         "type": "Integer", 
         "value": 1
-      }, 
-      "auth_url": {
-        "description": "authentication endpoint, default to https://auth.api.rackspacecloud.com for US accounts, https://lon.auth.api.rackspacecloud.com for UK ones",
-        "required": false, 
-        "type": "String", 
-        "value": null
-      }, 
-      "version": {
-        "description": "API version to use: v1 (default) or v2 for Open Cloud Servers",
-        "required": false, 
-        "type": "String", 
-        "value": null
       }, 
       "public_key": {
         "description": "public key content to copy to the server as authorized key",
@@ -66,8 +72,10 @@
       "options" : {
         "username": "String",
         "api_key": "Password",
+        "version": "String",
+        "endpoint": "String",
         "auth_url": "String",
-        "image_id": "Integer",
+        "image_id": "String",
         "flavor_id": "Integer",
         "public_key": "String"
       }
