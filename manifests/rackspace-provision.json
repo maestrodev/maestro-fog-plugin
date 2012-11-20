@@ -45,7 +45,7 @@
         "description": "Flavor id that defines ram, cpu,...",
         "required": true, 
         "type": "Integer", 
-        "value": 1
+        "value": 2
       }, 
       "public_key": {
         "description": "public key content to copy to the server as authorized key",
