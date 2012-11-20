@@ -1,6 +1,21 @@
 require 'maestro_agent'
 require 'fog_worker'
 require 'fog'
+require 'fog/compute/models/server'
+
+module Fog
+  module Compute
+    class RackspaceV2
+      # Add missing fields necessary for ssh, included in fog 1.7.0+
+      class Server < Fog::Compute::Server
+      # address used for ssh
+        def public_ip_address
+          ipv4_address
+        end
+      end
+    end
+  end
+end
 
 module MaestroDev
   class RackspaceWorker < FogWorker
