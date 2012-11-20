@@ -12,6 +12,20 @@ module Fog
         def public_ip_address
           ipv4_address
         end
+
+        def setup(credentials = {})
+          requires :public_ip_address, :identity, :public_key, :username
+          Fog::SSH.new(public_ip_address, username, credentials).run([
+            %{mkdir .ssh},
+            %{echo "#{public_key}" >> ~/.ssh/authorized_keys},
+            %{passwd -l #{username}},
+            %{echo "#{Fog::JSON.encode(attributes)}" >> ~/attributes.json},
+            %{echo "#{Fog::JSON.encode(metadata)}" >> ~/metadata.json}
+          ])
+        rescue Errno::ECONNREFUSED
+          sleep(1)
+          retry
+        end
       end
     end
   end
