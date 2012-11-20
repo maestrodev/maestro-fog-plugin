@@ -63,6 +63,12 @@ describe MaestroDev::FogWorker, :provider => "test" do
       wi.fields['cloud_ids'].should be_nil
       wi.fields['test_ids'].should be_nil
     end
+
+    it 'should generate a random name' do
+      @worker.random_name.should match(/^maestro-[a-z]{5}$/)
+      @worker.random_name("test").should match(/^test-[a-z]{5}$/)
+      @worker.random_name("test.acme.com").should match(/^test-[a-z]{5}\.acme\.com$/)
+    end
   end
 
   describe 'deprovision' do

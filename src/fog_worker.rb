@@ -55,8 +55,11 @@ module MaestroDev
     end
 
     # create 5 random chars if name not provided
+    # if it's a fully qualified domain add them to the host name only
     def random_name(basename = "maestro")
-      "#{basename}#{name_split_char}#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
+      parts = basename.split(".")
+      parts[0]="#{parts[0]}#{name_split_char}#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
+      parts.join(".")
     end
 
     # returns an array with errors, or empty if successful
