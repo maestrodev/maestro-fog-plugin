@@ -1,7 +1,6 @@
 require 'maestro_agent'
 require 'fog_worker'
 require 'fog'
-require 'fog/compute/models/server'
 
 module MaestroDev
   class VSphereWorker < FogWorker

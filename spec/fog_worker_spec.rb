@@ -13,16 +13,22 @@ describe MaestroDev::FogWorker, :provider => "test" do
   end
 
   before(:all) do
-    Fog.mock!
     @worker = TestWorker.new
 
     @ssh_user = "johndoe"
     @private_key = "aaaa"
   end
 
-  def mock_server(id = 1, name = "test")
+  def mock_server_basic(id, name)
     server = Fog::Compute::Server.new(:id => id)
-    server.stub(:name => name, :wait_for => true, :public_ip_address => '192.168.1.1')
+    server.class.identity("id")
+    server.stub({:name => name, "ready?" => true, :reload => true})
+    server
+  end
+
+  def mock_server(id=1, name="test")
+    server = mock_server_basic(id, name)
+    server.stub({:public_ip_address => '192.168.1.1'})
     server.should_receive(:username=).with(@ssh_user)
     server.should_receive(:private_key_path=).with(nil)
     server.should_receive(:private_key=).with(@private_key)
@@ -47,13 +53,55 @@ describe MaestroDev::FogWorker, :provider => "test" do
 
       connection = double("connection", :servers => [])
       @worker.stub(:connect => connection)
-
-      @worker.stub(:create_server => mock_server)
+      @worker.should_receive(:create_server).with(connection, "test").and_return(mock_server)
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should_not be_empty
-      wi.fields['test_ids'].should_not be_empty
+      wi.fields['cloud_ids'].compact.size.should == 1
+      wi.fields['test_ids'].compact.size.should == 1
+      wi.fields['cloud_ips'].compact.size.should == 1
+      wi.fields['test_ips'].compact.size.should == 1
+    end
+
+    # in Rackspace v2 cloud servers may be ready but not have a public ip yet
+    it 'should wait for public ip' do
+      wi = Ruote::Workitem.new({"fields" => @fields})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      server = mock_server_basic(1, "test")
+      server.stub("ready?").and_return(true)
+      ip = '192.168.1.1'
+      server.stub(:public_ip_address).and_return(nil, nil, ip)
+      @worker.stub(:create_server => server)
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].compact.size.should == 1
+      wi.fields['test_ids'].compact.size.should == 1
+      wi.fields['cloud_ips'].compact.size.should == 1
+      wi.fields['cloud_ips'].first.should eq(ip)
+      wi.fields['test_ips'].compact.size.should == 1
+    end
+
+    it 'should fail if server does not have public ip' do
+      wi = Ruote::Workitem.new({"fields" => @fields})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      server = mock_server_basic(1, "test")
+      server.stub("ready?").and_return(true)
+      server.stub(:public_ip_address).and_return(nil)
+      @worker.stub(:create_server => server)
+      @worker.provision
+
+      wi.fields['__error__'].should eq("Timed out waiting for server 1 'test' to get a public ip")
+      wi.fields['cloud_ids'].compact.size.should == 1
+      wi.fields['test_ids'].compact.size.should == 1
+      wi.fields['cloud_ips'].should be_nil
+      wi.fields['test_ips'].should be_nil
     end
 
     it 'should provision more than one server when name is not provided' do
@@ -62,13 +110,13 @@ describe MaestroDev::FogWorker, :provider => "test" do
 
       connection = double("connection", :servers => [])
       @worker.stub(:connect => connection)
-      @worker.should_receive(:create_server).with(anything(), nil).and_return(
+      @worker.should_receive(:create_server).with(connection, nil).and_return(
         mock_server(1), mock_server(2), mock_server(3))
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].size.should == 3
-      wi.fields['test_ids'].size.should == 3
+      wi.fields['cloud_ids'].compact.size.should == 3
+      wi.fields['test_ids'].compact.size.should == 3
     end
 
     it 'should provision more than one server with random names when name is provided' do
@@ -77,13 +125,13 @@ describe MaestroDev::FogWorker, :provider => "test" do
 
       connection = double("connection", :servers => [])
       @worker.stub(:connect => connection)
-      @worker.should_receive(:create_server).with(anything(), /^test-[a-z]{5}$/).and_return(
+      @worker.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(
         mock_server(1), mock_server(2), mock_server(3))
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].size.should == 3
-      wi.fields['test_ids'].size.should == 3
+      wi.fields['cloud_ids'].compact.size.should == 3
+      wi.fields['test_ids'].compact.size.should == 3
     end
 
     it 'should fail if ssh is not properly configured' do

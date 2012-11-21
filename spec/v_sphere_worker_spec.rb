@@ -57,7 +57,6 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
   end
 
   before(:all) do
-    Fog.mock!
     @worker = MaestroDev::VSphereWorker.new
 
     # mock

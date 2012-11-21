@@ -13,7 +13,6 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
   end
 
   before(:all) do
-    Fog.mock!
     @worker = MaestroDev::RackspaceWorker.new
 
     @api_key = "myapi"
@@ -33,7 +32,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
       }
     end
 
-    it 'should provision a machine' do
+    it 'should provision a machine', :skip => true do
       wi = Ruote::Workitem.new({"fields" => @fields})
       @worker.stub(:workitem => wi.to_h)
       @worker.provision
@@ -47,7 +46,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
     end
 
     # can't test it with mock
-    # it 'should fail when image does not exist' do
+    # it 'should fail when image does not exist', :skip => true do
     #   wi = Ruote::Workitem.new({"fields" => @fields.merge({"image_id" => "999999"})})
     #
     #   @worker.stub(:workitem => wi.to_h)
@@ -55,7 +54,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
     #   wi.fields['__error__'].should eq("Image id '999999' flavor '1' not found")
     # end
 
-    it 'should provision a machine in europe' do
+    it 'should provision a machine in europe', :skip => true do
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"auth_url" => @auth_url})})
       @worker.stub(:workitem => wi.to_h)
       @worker.provision

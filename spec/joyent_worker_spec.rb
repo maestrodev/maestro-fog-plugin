@@ -25,7 +25,6 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
   describe 'provision' do
 
     before(:all) do
-      Fog.mock!
       @fields = {
         "params" => {"command" => "provision"},
         "username" => @username,
@@ -60,7 +59,6 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
   describe 'deprovision' do
 
     before(:all) do
-      Fog.mock!
       @fields = {
         "params" => {"command" => "deprovision"},
         "joyent_username" => @username,

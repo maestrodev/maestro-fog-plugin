@@ -163,7 +163,7 @@ module MaestroDev
       name = get_field('name')
       existing_names = connection.servers.map {|s| s.name} if !name.nil? and number_of_vms==1
       # guarantee unique name if name is specified but taken already or launching more than 1 vm
-      randomize_name = !name.nil? and (number_of_vms > 1 or existing_names.include?(name))
+      randomize_name = (!name.nil? and (number_of_vms > 1 or existing_names.include?(name)))
 
       # start the servers
       (1..number_of_vms).each do |i|
@@ -195,7 +195,15 @@ module MaestroDev
 
       # wait for servers to be up and set them up
       servers.each do |s|
-        s.wait_for { ready? }
+        s.wait_for { ready? and !public_ip_address.nil? and !public_ip_address.empty? }
+
+        unless s.ready? and !s.public_ip_address.nil? and !s.public_ip_address.empty?
+          msg1 = s.ready? ? "get a public ip" : "be ready"
+          msg = "Timed out waiting for server #{s.id} '#{s.name}' to #{msg1}"
+          Maestro.log.error msg
+          set_error msg
+          break
+        end
 
         if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
           private_addr = s.addresses["private"][0]["addr"]
@@ -215,6 +223,8 @@ module MaestroDev
         setup_server(s)
       end
 
+      # if there was an error provisioning one of the servers, return
+      return if !get_field("__error__").nil?
 
       # save some values in the workitem so they are accessible for deprovision and other tasks
       # addresses={"private"=>[{"version"=>4, "addr"=>"10.20.0.37"}]},
