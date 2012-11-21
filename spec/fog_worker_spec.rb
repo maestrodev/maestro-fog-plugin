@@ -20,6 +20,15 @@ describe MaestroDev::FogWorker, :provider => "test" do
     @private_key = "aaaa"
   end
 
+  def mock_server(id = 1, name = "test")
+    server = Fog::Compute::Server.new(:id => id)
+    server.stub(:name => name, :wait_for => true, :public_ip_address => '192.168.1.1')
+    server.should_receive(:username=).with(@ssh_user)
+    server.should_receive(:private_key_path=).with(nil)
+    server.should_receive(:private_key=).with(@private_key)
+    server
+  end
+
   describe 'provision' do
 
     before(:each) do
@@ -39,18 +48,42 @@ describe MaestroDev::FogWorker, :provider => "test" do
       connection = double("connection", :servers => [])
       @worker.stub(:connect => connection)
 
-      server = Fog::Compute::Server.new(:id => 1)
-      server.stub(:name => "test", :wait_for => true, :public_ip_address => '192.168.1.1')
-      server.should_receive(:username=).with(@ssh_user)
-      server.should_receive(:private_key_path=).with(nil)
-      server.should_receive(:private_key=).with(@private_key)
-
-      @worker.stub(:create_server => server)
+      @worker.stub(:create_server => mock_server)
       @worker.provision
 
       wi.fields['__error__'].should be_nil
       wi.fields['cloud_ids'].should_not be_empty
       wi.fields['test_ids'].should_not be_empty
+    end
+
+    it 'should provision more than one server when name is not provided' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"name" => nil, "number_of_vms" => 3})})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      @worker.should_receive(:create_server).with(anything(), nil).and_return(
+        mock_server(1), mock_server(2), mock_server(3))
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].size.should == 3
+      wi.fields['test_ids'].size.should == 3
+    end
+
+    it 'should provision more than one server with random names when name is provided' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 3})})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      @worker.should_receive(:create_server).with(anything(), /^test-[a-z]{5}$/).and_return(
+        mock_server(1), mock_server(2), mock_server(3))
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].size.should == 3
+      wi.fields['test_ids'].size.should == 3
     end
 
     it 'should fail if ssh is not properly configured' do
@@ -67,7 +100,9 @@ describe MaestroDev::FogWorker, :provider => "test" do
     it 'should generate a random name' do
       @worker.random_name.should match(/^maestro-[a-z]{5}$/)
       @worker.random_name("test").should match(/^test-[a-z]{5}$/)
-      @worker.random_name("test.acme.com").should match(/^test-[a-z]{5}\.acme\.com$/)
+      s = "test.acme.com"
+      @worker.random_name(s).should match(/^test-[a-z]{5}\.acme\.com$/)
+      @worker.random_name(s).should match(/^test-[a-z]{5}\.acme\.com$/)
     end
   end
 

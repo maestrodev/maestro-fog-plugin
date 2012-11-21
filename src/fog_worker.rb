@@ -162,17 +162,14 @@ module MaestroDev
 
       name = get_field('name')
       existing_names = connection.servers.map {|s| s.name} if !name.nil? and number_of_vms==1
+      # guarantee unique name if name is specified but taken already or launching more than 1 vm
+      randomize_name = !name.nil? and (number_of_vms > 1 or existing_names.include?(name))
 
       # start the servers
       (1..number_of_vms).each do |i|
 
-        # guarantee unique name if name is specified but taken already or launching more than 1 vm
-        if !name.nil? and (number_of_vms > 1 or existing_names.include?(name))
-          name = random_name(name)
-        end
-
         # create the server in the cloud provider
-        s = create_server(connection, name)
+        s = create_server(connection, randomize_name ? random_name(name) : name)
 
         if s.nil? && get_field("__error__").nil?
           msg = "Failed to create VM"
