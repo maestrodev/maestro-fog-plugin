@@ -5,7 +5,7 @@
   "type":"ruby",
   "dependencies":[
     {
-      "name" : "maestrodev-fog",
+      "name" : "fog",
       "version" : "1.7.0",
       "source" : "http://rubygems.org/"
     }
