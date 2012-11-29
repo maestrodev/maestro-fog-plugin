@@ -6,7 +6,7 @@ require 'json'
 
 $:.push File.expand_path("../src", __FILE__)
 
-CLEAN.include("maestro-*-plugin-*.zip","vendor","package","tmp")
+CLEAN.include("manifest.json", "*-plugin.zip", "vendor", "package", "tmp", ".bundle")
 
 task :default => :all
 
