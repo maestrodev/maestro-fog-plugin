@@ -28,7 +28,7 @@
       "package": {
           "required": false, 
           "type": "String", 
-          "value": "Small 2GB",
+          "value": "g1_standard_1cpu_512mb",
           "description": "Describe the ‘sizes’ of either a smart machine or a virtual machine"
       },
       "dataset": {
