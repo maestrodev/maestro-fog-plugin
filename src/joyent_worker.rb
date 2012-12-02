@@ -14,6 +14,9 @@ module MaestroDev
     end
 
     def connect_options
+      # InstantServers SSL certificate is not valid, disable verification
+      Excon.defaults[:ssl_verify_peer] = false
+
       opts = {
           :joyent_username => get_field('username'),
           :joyent_password => get_field('password'),
@@ -23,9 +26,6 @@ module MaestroDev
     end
 
     def create_server(connection, name)
-      # InstantServers SSL certificate is not valid, disable verification
-      Excon.defaults[:ssl_verify_peer] = false
-
       package = get_field('package')
       dataset = get_field('dataset')
 
