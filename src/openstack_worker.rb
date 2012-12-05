@@ -60,6 +60,11 @@ module MaestroDev
         Maestro.log.error msg
         set_error msg
         return
+      rescue Fog::OpenStack::Errors::ServiceError => e
+        msg = "Error creating server: #{e.message}"
+        Maestro.log.error msg
+        set_error msg
+        return
       rescue Exception => e
         log("Error creating server from image #{image_id}", e) and return
       end
