@@ -32,7 +32,13 @@ describe MaestroDev::FogWorker, :provider => "test" do
     server.should_receive(:username=).with(@ssh_user)
     server.should_receive(:private_key_path=).with(nil)
     server.should_receive(:private_key=).with(@private_key)
+    server.should_receive(:ssh).once.and_return([ssh_result])
     server
+  end
+  def ssh_result
+    r = Fog::SSH::Result.new("ssh command")
+    r.status = 0
+    r
   end
 
   describe 'provision' do
@@ -73,6 +79,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       server = mock_server_basic(1, "test")
       server.stub("ready?").and_return(true)
       ip = '192.168.1.1'
+      server.should_receive(:ssh).once.and_return([ssh_result])
       server.stub(:public_ip_address).and_return(nil, nil, ip)
       @worker.stub(:create_server => server)
       @worker.provision
@@ -97,11 +104,77 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:create_server => server)
       @worker.provision
 
-      wi.fields['__error__'].should eq("Timed out waiting for server 1 'test' to get a public ip")
+      wi.fields['__error__'].should eq("All servers failed to get public ips")
       wi.fields['cloud_ids'].compact.size.should == 1
       wi.fields['test_ids'].compact.size.should == 1
       wi.fields['cloud_ips'].should be_nil
       wi.fields['test_ips'].should be_nil
+    end
+
+    it 'should not fail if some servers fail to start' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 2})})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      server1 = mock_server_basic(1, "test 1")
+      server1.stub("ready?").and_return(true)
+      server1.stub(:public_ip_address).and_return(nil)
+      server2 = mock_server(2, "test 2")
+      @worker.should_receive(:create_server).and_return(server1, server2)
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].compact.size.should == 2
+      wi.fields['test_ids'].compact.size.should == 2
+      wi.fields['cloud_ips'].compact.size.should == 1
+      wi.fields['test_ips'].compact.size.should == 1
+    end
+
+    it 'should not fail if some servers fail to provision' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 2})})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      server1 = mock_server(1, "test 1")
+      server2 = mock_server_basic(2, "test 2")
+      server2.stub(:public_ip_address => '1912.168.1.1')
+      failed_ssh = ssh_result
+      failed_ssh.status=1
+      server2.should_receive(:ssh).once.and_return([failed_ssh])
+      @worker.should_receive(:create_server).and_return(server1, server2)
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].compact.size.should == 2
+      wi.fields['test_ids'].compact.size.should == 2
+      wi.fields['cloud_ips'].compact.size.should == 2
+      wi.fields['test_ips'].compact.size.should == 2
+    end
+
+    it 'should fail if all servers fail to provision' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 2})})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      @worker.stub(:connect => connection)
+      server1 = mock_server_basic(1, "test 1")
+      server2 = mock_server_basic(2, "test 2")
+      server1.stub(:public_ip_address => '1912.168.1.1')
+      server2.stub(:public_ip_address => '1912.168.1.2')
+      failed_ssh = ssh_result
+      failed_ssh.status=1
+      server1.should_receive(:ssh).once.and_return([failed_ssh])
+      server2.should_receive(:ssh).once.and_return([failed_ssh])
+      @worker.should_receive(:create_server).and_return(server1, server2)
+      @worker.provision
+
+      wi.fields['__error__'].should eq("All servers failed to provision")
+      wi.fields['cloud_ids'].compact.size.should == 2
+      wi.fields['test_ids'].compact.size.should == 2
+      wi.fields['cloud_ips'].compact.size.should == 2
+      wi.fields['test_ips'].compact.size.should == 2
     end
 
     it 'should provision more than one server when name is not provided' do
@@ -141,6 +214,17 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should eq("private_key or private_key_path is required for SSH")
+      wi.fields['cloud_ids'].should be_nil
+      wi.fields['test_ids'].should be_nil
+    end
+
+    it 'should fail early if ssh key file does not exist' do
+      wi = Ruote::Workitem.new({"fields" => @fields.reject {|k,v| k=="private_key"}.merge({"private_key_path" => "/blabla"})})
+      @worker.stub(:workitem => wi.to_h)
+      @worker.stub(:connect => double("connection"))
+      @worker.provision
+
+      wi.fields['__error__'].should eq("private_key_path does not exist: /blabla")
       wi.fields['cloud_ids'].should be_nil
       wi.fields['test_ids'].should be_nil
     end

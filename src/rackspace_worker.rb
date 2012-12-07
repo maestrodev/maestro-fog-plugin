@@ -1,6 +1,20 @@
 require 'maestro_agent'
 require 'fog_worker'
 require 'fog'
+require 'fog/compute/models/server'
+
+module Fog
+  module Compute
+    class RackspaceV2
+      class Server < Fog::Compute::Server
+        def error?
+          state == ERROR
+        end
+      end
+    end
+  end
+end
+
 
 module MaestroDev
   class RackspaceWorker < FogWorker

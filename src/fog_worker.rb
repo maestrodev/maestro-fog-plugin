@@ -62,12 +62,53 @@ module MaestroDev
       parts.join(".")
     end
 
+    # execute when server is ready
+    def on_ready(s)
+      msg = "Waiting for server '#{s.name}' #{s.id} to get a public ip"
+      Maestro.log.debug msg
+      write_output("#{msg}... ")
+
+      s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? }
+
+      # wait_for may timeout without getting public ip
+      if s.public_ip_address.nil?
+        msg = "Server '#{s.name}' #{s.id} failed to get a public ip"
+        Maestro.log.warn msg
+        write_output("failed\n")
+        return nil
+      end
+
+      Maestro.log.debug "Server '#{s.name}' #{s.id} is now accessible through ssh"
+      write_output("done\n")
+
+      if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
+        private_addr = s.addresses["private"][0]["addr"]
+        has_private_ips = true
+      else
+        private_addr = ''
+      end
+
+      set_error("public ip is nil") if s.public_ip_address.nil?
+      msg = "Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'"
+      Maestro.log.info msg
+      write_output("#{msg}\n")
+
+      msg = "Initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
+      Maestro.log.debug msg
+      write_output("#{msg}...")
+      setup_server(s)
+      Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
+      write_output("done\n")
+
+      return s
+    end
+
     # returns an array with errors, or empty if successful
     def provision_execute(s, commands)
       host = s.public_ip_address
 
       errors = []
-      return errors if (commands == nil) || (commands == '') || Fog.mocking?
+      return errors if (commands == nil) || (commands == '')
 
       msg = "Running SSH Commands On New Machine #{host} - #{commands.join(", ")}"
       Maestro.log.info msg
@@ -144,17 +185,27 @@ module MaestroDev
 
       number_of_vms = get_field('number_of_vms') || 1
 
-      # validate ssh options
+      # validate ssh options early before starting vms
       commands = get_field('ssh_commands')
       username = get_field('ssh_user') || "root"
       private_key = get_field("private_key")
       private_key_path = get_field("private_key_path")
       if !(commands.nil? or commands.empty?)
-        if private_key.nil? and private_key_path.nil?
-          msg = "private_key or private_key_path is required for SSH"
-          Maestro.log.error msg
-          set_error msg
-          return
+        if private_key.nil? 
+          if private_key_path.nil?
+            msg = "private_key or private_key_path is required for SSH"
+            Maestro.log.error msg
+            set_error msg
+            return
+          else
+            private_key_path = File.expand_path(private_key_path)
+            unless File.exist?(private_key_path)
+              msg = "private_key_path does not exist: #{private_key_path}"
+              Maestro.log.error msg
+              set_error msg
+              return
+            end
+          end
         end
       end
 
@@ -167,21 +218,30 @@ module MaestroDev
 
       # start the servers
       (1..number_of_vms).each do |i|
+        server_name = randomize_name ? random_name(name) : name
+
+        msg = "Creating server '#{server_name}'"
+        Maestro.log.debug msg
+        write_output("#{msg}\n")
 
         # create the server in the cloud provider
-        s = create_server(connection, randomize_name ? random_name(name) : name)
+        s = create_server(connection, server_name)
 
         if s.nil? && get_field("__error__").nil?
-          msg = "Failed to create VM"
+          msg = "Failed to create server '#{server_name}'"
           Maestro.log.error msg
+          write_output("#{msg}\n")
           set_error msg
         end
-        break if s.nil?
+        next if s.nil?
 
-        msg = "Started VM '#{s.name}' with id '#{s.id}'"
+        msg = "Created server '#{s.name}' with id '#{s.id}'"
         Maestro.log.info msg
         write_output("#{msg}\n")
 
+        s.username = username
+        s.private_key = private_key
+        s.private_key_path = private_key_path
         servers << s
       end
 
@@ -190,37 +250,46 @@ module MaestroDev
       set_field("#{provider}_ids", ids)
       set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
 
-      # if there was an error provisioning one of the servers, return
+      # if there was an error provisioning servers, return
       return if !get_field("__error__").nil?
 
       # wait for servers to be up and set them up
       servers.each do |s|
-        s.wait_for { ready? and !public_ip_address.nil? and !public_ip_address.empty? }
+        msg = "Waiting for server '#{s.name}' #{s.id} to be ready"
+        Maestro.log.debug msg
+        write_output("#{msg}... ")
 
-        unless s.ready? and !s.public_ip_address.nil? and !s.public_ip_address.empty?
-          msg1 = s.ready? ? "get a public ip" : "be ready"
-          msg = "Timed out waiting for server #{s.id} '#{s.name}' to #{msg1}"
-          Maestro.log.error msg
-          set_error msg
-          break
+        s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} is ready") and (ready? or error?) }
+
+        unless s.ready?
+          state = s.respond_to?('state') ? " with state: #{s.state}" : ""
+          Maestro.log.warn "Server '#{s.name}' #{s.id} failed to start#{state}"
+          write_output("failed#{state}\n")
+          next
         end
 
-        if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
-          private_addr = s.addresses["private"][0]["addr"]
-          has_private_ips = true
-        else
-          private_addr = ''
-        end
+        Maestro.log.info "Server '#{s.name}' #{s.id} is ready"
+        write_output("done\n")
+      end
 
-        msg = "Started VM '#{s.name}' with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'"
-        Maestro.log.info msg
-        write_output("#{msg}\n")
+      # check that there are still servers to work on
+      servers_ready = servers.select{|s| s.ready?}
+      if servers_ready.empty?
+        msg = "All servers failed to start"
+        Maestro.log.warn msg
+        set_error msg
+        return
+      end
 
-        s.username = username
-        s.private_key = private_key
-        s.private_key_path = private_key_path
+      # wait for servers to have public ip
+      servers_sshable = servers_ready.map{ |s| on_ready s }.compact
 
-        setup_server(s)
+      # check that there are still servers to work on
+      if servers_sshable.empty?
+        msg = "All servers failed to get public ips"
+        Maestro.log.warn msg
+        set_error msg
+        return
       end
 
       # if there was an error provisioning one of the servers, return
@@ -239,11 +308,27 @@ module MaestroDev
 
       # run provisioning commands through ssh
       errors = []
-      servers.each do |s|
-        errors << provision_execute(s, commands)
+      failed_servers = []
+      servers_sshable.each do |s|
+        server_errors = provision_execute(s, commands)
+        unless server_errors.empty?
+          msg = "Server '#{s.name}' #{s.id} failed to provision"
+          Maestro.log.info msg
+          write_output("#{msg}\n")
+          write_output(errors.join("\n"))
+          errors << server_errors
+          failed_servers << s
+        end
       end
       errors.flatten!
-      set_error(errors.join("\n")) unless errors.empty?
+
+      # check that not all the servers failed
+      if servers_sshable.size == failed_servers.size
+        msg = "All servers failed to provision"
+        Maestro.log.warn msg
+        set_error msg
+        return
+      end
 
       msg = "Maestro #{provider} provision complete!"
       Maestro.log.debug msg
