@@ -70,7 +70,13 @@ module MaestroDev
         set_error msg
         return
       rescue Fog::Rackspace::Errors::ServiceError => e
-        msg = "Error creating server: #{e.message}"
+        error = e.message
+        # TODO not needed in fog 1.8+
+        if e.response_data && e.response_data.values && e.response_data.values.first
+          error = "#{e.message} #{e.response_data.values.first['message']}"
+        end
+        # end TODO
+        msg = "Error creating server: #{error}"
         Maestro.log.error msg
         set_error msg
         return

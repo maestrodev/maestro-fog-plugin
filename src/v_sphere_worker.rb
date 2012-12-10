@@ -10,9 +10,6 @@ module Fog
         def public_ip_address
           ipaddress
         end
-        def error?
-          false
-        end
         def state
           power_state
         end
@@ -47,8 +44,6 @@ module MaestroDev
     def create_server(connection, name)
       datacenter = get_field('datacenter')
       template_name = get_field('template_name')
-
-      name = random_name if name.nil? || name.empty?
 
       msg = "Cloning VM #{template_name} into #{name}"
       Maestro.log.info msg

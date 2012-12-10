@@ -106,7 +106,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:create_server => server)
       @worker.provision
 
-      wi.fields['__error__'].should eq("All servers failed to get public ips")
+      wi.fields['__error__'].should eq("All servers failed to provision")
       wi.fields['cloud_ids'].compact.size.should == 1
       wi.fields['test_ids'].compact.size.should == 1
       wi.fields['cloud_ips'].should be_nil
@@ -141,7 +141,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:connect => connection)
       server1 = mock_server(1, "test 1")
       server2 = mock_server_basic(2, "test 2")
-      server2.stub(:public_ip_address => '1912.168.1.1')
+      server2.stub(:public_ip_address => '192.168.1.1')
       failed_ssh = ssh_result
       failed_ssh.status=1
       server2.should_receive(:ssh).once.and_return([failed_ssh])
@@ -163,8 +163,8 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:connect => connection)
       server1 = mock_server_basic(1, "test 1")
       server2 = mock_server_basic(2, "test 2")
-      server1.stub(:public_ip_address => '1912.168.1.1')
-      server2.stub(:public_ip_address => '1912.168.1.2')
+      server1.stub(:public_ip_address => '192.168.1.1')
+      server2.stub(:public_ip_address => '192.168.1.2')
       failed_ssh = ssh_result
       failed_ssh.status=1
       server1.should_receive(:ssh).once.and_return([failed_ssh])
@@ -179,13 +179,22 @@ describe MaestroDev::FogWorker, :provider => "test" do
       wi.fields['test_ips'].compact.size.should == 2
     end
 
+    it 'should provision a machine with a random name when name is not provided' do
+      wi = Ruote::Workitem.new({"fields" => @fields.reject!{ |k, v| k == 'name' }})
+      connection = double("connection", :servers => [])
+      @worker.stub({:workitem => wi.to_h, :connect => connection})
+      @worker.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(mock_server)
+      @worker.provision
+      @worker.error.should be_nil
+    end
+
     it 'should provision more than one server when name is not provided' do
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"name" => nil, "number_of_vms" => 3})})
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
       @worker.stub(:connect => connection)
-      @worker.should_receive(:create_server).with(connection, nil).and_return(
+      @worker.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(
         mock_server(1), mock_server(2), mock_server(3))
       @worker.provision
 

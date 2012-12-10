@@ -1,5 +1,16 @@
 require 'maestro_agent'
 require 'fog'
+require 'fog/core/model'
+
+module Fog
+  module Compute
+    class Server < Fog::Model
+      def error?
+        false
+      end
+    end
+  end
+end
 
 module MaestroDev
   class FogWorker < Maestro::MaestroWorker
@@ -57,18 +68,19 @@ module MaestroDev
     # create 5 random chars if name not provided
     # if it's a fully qualified domain add them to the host name only
     def random_name(basename = "maestro")
+      basename ||= "maestro"
       parts = basename.split(".")
       parts[0]="#{parts[0]}#{name_split_char}#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
       parts.join(".")
     end
 
     # execute when server is ready
-    def on_ready(s)
+    def on_ready(s, commands)
       msg = "Waiting for server '#{s.name}' #{s.id} to get a public ip"
       Maestro.log.debug msg
       write_output("#{msg}... ")
 
-      s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? }
+      s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? and !public_ip_address.empty? }
 
       # wait_for may timeout without getting public ip
       if s.public_ip_address.nil?
@@ -83,12 +95,16 @@ module MaestroDev
 
       if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
         private_addr = s.addresses["private"][0]["addr"]
-        has_private_ips = true
+        set_field("#{provider}_private_ips", (get_field("#{provider}_private_ips") || []) << private_addr)
+        set_field("cloud_private_ips", (get_field("cloud_private_ips") || []) << private_addr)
       else
         private_addr = ''
       end
 
-      set_error("public ip is nil") if s.public_ip_address.nil?
+      # save some values in the workitem so they are accessible for deprovision and other tasks
+      set_field("#{provider}_ips", (get_field("#{provider}_ips") || []) << s.public_ip_address)
+      set_field("cloud_ips", (get_field("cloud_ips") || []) << s.public_ip_address)
+
       msg = "Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'"
       Maestro.log.info msg
       write_output("#{msg}\n")
@@ -96,9 +112,24 @@ module MaestroDev
       msg = "Initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
       Maestro.log.debug msg
       write_output("#{msg}...")
-      setup_server(s)
-      Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
-      write_output("done\n")
+      begin
+        setup_server(s)
+        Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
+        write_output("done\n")
+      rescue Net::SSH::AuthenticationFailed => e
+        Maestro.log.debug "Failed to setup server '#{s.name}' #{s.id} on '#{s.public_ip_address}'. Authentication failed for user '#{s.username}'"
+        return nil
+      end
+
+      # provision through ssh
+      server_errors = provision_execute(s, commands)
+      unless server_errors.empty?
+        msg = "Server '#{s.name}' #{s.id} failed to provision"
+        Maestro.log.info msg
+        write_output("#{msg}\n")
+        write_output(server_errors.join("\n"))
+        return nil
+      end
 
       return s
     end
@@ -209,12 +240,11 @@ module MaestroDev
         end
       end
 
-      has_private_ips = false
-
       name = get_field('name')
       existing_names = connection.servers.map {|s| s.name} if !name.nil? and number_of_vms==1
+      # some providers require name, so let's assign a random one if not set to be sure
       # guarantee unique name if name is specified but taken already or launching more than 1 vm
-      randomize_name = (!name.nil? and (number_of_vms > 1 or existing_names.include?(name)))
+      randomize_name = (name.nil? or name.empty? or (number_of_vms > 1) or existing_names.include?(name))
 
       # start the servers
       (1..number_of_vms).each do |i|
@@ -254,76 +284,49 @@ module MaestroDev
       return if !get_field("__error__").nil?
 
       # wait for servers to be up and set them up
-      servers.each do |s|
-        msg = "Waiting for server '#{s.name}' #{s.id} to be ready"
-        Maestro.log.debug msg
-        write_output("#{msg}... ")
-
-        s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} is ready") and (ready? or error?) }
-
-        unless s.ready?
-          state = s.respond_to?('state') ? " with state: #{s.state}" : ""
-          Maestro.log.warn "Server '#{s.name}' #{s.id} failed to start#{state}"
-          write_output("failed#{state}\n")
-          next
+      servers_ready = []
+      servers_provisioned = []
+      start = Time.now
+      timeout = Fog.timeout
+      while !servers.empty?
+        server_names = servers.map{|s| s.name}.join(", ")
+        duration = Time.now - start
+        if duration > timeout
+          log_output("Servers timed out before being ready: #{server_names}", :warn)
+          break
         end
 
-        Maestro.log.info "Server '#{s.name}' #{s.id} is ready"
-        write_output("done\n")
+        log_output("Waiting for servers to be ready: #{server_names}")
+        servers.each { |s| s.reload }
+        s = servers.find { |s| s.ready? or s.error? }
+        if s.nil?
+          sleep(1)
+        else
+          if s.error?
+            state = s.respond_to?('state') ? " with state: #{s.state}" : ""
+            Maestro.log.warn "Server '#{s.name}' #{s.id} failed to start#{state}"
+            write_output("failed#{state}\n")
+            servers.delete(s)
+          else
+            log_output("Server '#{s.name}' #{s.id} is ready")
+            servers_ready << servers.delete(s)
+            # wait for servers to have public ip and run commands. Don't add provisioning time to timeout
+            provision_start = Time.now
+            servers_provisioned << on_ready(s, commands)
+            start = start + (Time.now - provision_start)
+          end
+        end
       end
 
-      # check that there are still servers to work on
-      servers_ready = servers.select{|s| s.ready?}
-      if servers_ready.empty?
+      if servers_ready.compact.empty?
         msg = "All servers failed to start"
         Maestro.log.warn msg
         set_error msg
         return
       end
 
-      # wait for servers to have public ip
-      servers_sshable = servers_ready.map{ |s| on_ready s }.compact
-
-      # check that there are still servers to work on
-      if servers_sshable.empty?
-        msg = "All servers failed to get public ips"
-        Maestro.log.warn msg
-        set_error msg
-        return
-      end
-
-      # if there was an error provisioning one of the servers, return
-      return if !get_field("__error__").nil?
-
-      # save some values in the workitem so they are accessible for deprovision and other tasks
-      # addresses={"private"=>[{"version"=>4, "addr"=>"10.20.0.37"}]},
-      if (has_private_ips)
-        private_ips = servers.map { |s| s.addresses["private"][0]["addr"] }
-        set_field("#{provider}_private_ips", private_ips)
-        set_field("cloud_private_ips", private_ips.concat(get_field("cloud_private_ips") || []))
-      end
-      ips = servers.map {|s| s.public_ip_address}
-      set_field("#{provider}_ips", ips)
-      set_field("cloud_ips", ips.concat(get_field("cloud_ips") || []))
-
-      # run provisioning commands through ssh
-      errors = []
-      failed_servers = []
-      servers_sshable.each do |s|
-        server_errors = provision_execute(s, commands)
-        unless server_errors.empty?
-          msg = "Server '#{s.name}' #{s.id} failed to provision"
-          Maestro.log.info msg
-          write_output("#{msg}\n")
-          write_output(errors.join("\n"))
-          errors << server_errors
-          failed_servers << s
-        end
-      end
-      errors.flatten!
-
       # check that not all the servers failed
-      if servers_sshable.size == failed_servers.size
+      if servers_provisioned.compact.empty?
         msg = "All servers failed to provision"
         Maestro.log.warn msg
         set_error msg
