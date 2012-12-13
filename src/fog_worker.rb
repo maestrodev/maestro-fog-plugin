@@ -21,6 +21,11 @@ module MaestroDev
       set_error(msg)
     end
 
+    def log_output(msg, level=:debug)
+      Maestro.log.send(level, msg)
+      write_output "#{msg}\n"
+    end
+
     def required_fields
       []
     end
@@ -105,9 +110,7 @@ module MaestroDev
       set_field("#{provider}_ips", (get_field("#{provider}_ips") || []) << s.public_ip_address)
       set_field("cloud_ips", (get_field("cloud_ips") || []) << s.public_ip_address)
 
-      msg = "Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'"
-      Maestro.log.info msg
-      write_output("#{msg}\n")
+      log_output("Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'", :info)
 
       msg = "Initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
       Maestro.log.debug msg
@@ -117,16 +120,14 @@ module MaestroDev
         Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
         write_output("done\n")
       rescue Net::SSH::AuthenticationFailed => e
-        Maestro.log.debug "Failed to setup server '#{s.name}' #{s.id} on '#{s.public_ip_address}'. Authentication failed for user '#{s.username}'"
+        log_output("Failed to setup server '#{s.name}' #{s.id} on '#{s.public_ip_address}'. Authentication failed for user '#{s.username}'")
         return nil
       end
 
       # provision through ssh
       server_errors = provision_execute(s, commands)
       unless server_errors.empty?
-        msg = "Server '#{s.name}' #{s.id} failed to provision"
-        Maestro.log.info msg
-        write_output("#{msg}\n")
+        log_output("Server '#{s.name}' #{s.id} failed to provision", :info)
         write_output(server_errors.join("\n"))
         return nil
       end
@@ -141,9 +142,7 @@ module MaestroDev
       errors = []
       return errors if (commands == nil) || (commands == '')
 
-      msg = "Running SSH Commands On New Machine #{host} - #{commands.join(", ")}"
-      Maestro.log.info msg
-      write_output "#{msg}\n"
+      log_output("Running SSH Commands On New Machine #{host} - #{commands.join(", ")}", :info)
 
       for i in 1..10
         begin
@@ -152,35 +151,27 @@ module MaestroDev
             e = result.stderr
             o = result.stdout
 
-            msg = "[#{host}] Ran Command #{result.command} With Output:\n#{o}\n"
-            Maestro.log.debug msg
-            write_output msg
+            log_output("[#{host}] Ran Command #{result.command} With Output:\n#{o}\n")
 
             if !result.stderr.nil? && result.stderr != ''
-              msg = "[#{host}] Stderr:\n#{o}"
-              Maestro.log.debug msg
-              write_output "#{msg}\n"
+              log_output("[#{host}] Stderr:\n#{o}")
             end
 
             if result.status != 0
               msg = "[#{host}] Command '#{result.command}' failed with status #{result.status}"
               errors << msg
-              Maestro.log.info msg
-              write_output "#{msg}\n"
+              log_output(msg, :info)
             end
 
           end unless responses.nil?
           break
         rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::SSH::Disconnect => e
-          msg = "[#{host}] Try #{i} - failed to connect: #{e}, retrying..."
-          write_output "#{msg}\n"
-          Maestro.log.warn msg
+          log_output("[#{host}] Try #{i} - failed to connect: #{e}, retrying...", :warn)
           i = i+1
           if i > 10
             msg = "[#{host}] Could not connect to remote machine after 10 attempts"
             errors << msg
-            write_output "#{msg}\n"
-            Maestro.log.warn msg
+            log_output(msg, :warn)
           else
             sleep 5
             next
@@ -191,9 +182,7 @@ module MaestroDev
     end
 
     def provision
-      msg = "Starting #{provider} provision"
-      Maestro.log.info msg
-      write_output("#{msg}\n")
+      log_output("Starting #{provider} provision", :info)
 
       errors = validate_provision_fields
       unless errors.empty?
@@ -250,24 +239,17 @@ module MaestroDev
       (1..number_of_vms).each do |i|
         server_name = randomize_name ? random_name(name) : name
 
-        msg = "Creating server '#{server_name}'"
-        Maestro.log.debug msg
-        write_output("#{msg}\n")
+        log_output("Creating server '#{server_name}'")
 
         # create the server in the cloud provider
         s = create_server(connection, server_name)
 
         if s.nil? && get_field("__error__").nil?
-          msg = "Failed to create server '#{server_name}'"
-          Maestro.log.error msg
-          write_output("#{msg}\n")
-          set_error msg
+          log_output("Failed to create server '#{server_name}'", :error)
         end
         next if s.nil?
 
-        msg = "Created server '#{s.name}' with id '#{s.id}'"
-        Maestro.log.info msg
-        write_output("#{msg}\n")
+        log_output("Created server '#{s.name}' with id '#{s.id}'", :info)
 
         s.username = username
         s.private_key = private_key
@@ -339,16 +321,12 @@ module MaestroDev
     end
 
     def deprovision
-      msg = "Starting #{provider} deprovision"
-      Maestro.log.info msg
-      write_output("#{msg}\n")
+      log_output("Starting #{provider} deprovision", :info)
 
       ids = get_field("#{provider}_ids")
 
       if ids.nil?
-        msg = "No servers found to be deprovisioned"
-        Maestro.log.warn msg
-        write_output("#{msg}\n")
+        log_output("No servers found to be deprovisioned", :warn)
         return
       end
 
@@ -362,16 +340,12 @@ module MaestroDev
       end
 
       ids.each do |id|
-        msg = "Deprovisioning VM with id '#{id}'"
-        Maestro.log.info msg
-        write_output("#{msg}\n")
+        log_output("Deprovisioning VM with id '#{id}'", :info)
         begin
           s = connection.servers.get(id)
 
           if s.nil?
-            msg = "VM with id '#{id}' not found, ignoring"
-            Maestro.log.warn msg
-            write_output("#{msg}\n")
+            log_output("VM with id '#{id}' not found, ignoring", :warn)
           else
             s.destroy
           end
@@ -380,11 +354,8 @@ module MaestroDev
         end
       end
 
-      msg = "Maestro #{provider} deprovision complete!"
-      Maestro.log.debug msg
-      write_output("#{msg}\n")
+      log_output("Maestro #{provider} deprovision complete!", :info)
     end
-
   end
 
 end
