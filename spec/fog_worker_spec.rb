@@ -10,9 +10,11 @@ describe MaestroDev::FogWorker, :provider => "test" do
     def provider
       "test"
     end
+    def write_output(msg)
+    end
   end
 
-  before(:all) do
+  before(:each) do
     @worker = TestWorker.new
 
     @ssh_user = "johndoe"

@@ -15,8 +15,9 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
       :openstack_api_key => @api_key)
   end
 
-  before(:all) do
+  before(:each) do
     @worker = MaestroDev::OpenstackWorker.new
+    @worker.stub(:write_output)
     @api_key = "myapi"
     @username = "johndoe"
     @image_id = "abc-123-456-789"

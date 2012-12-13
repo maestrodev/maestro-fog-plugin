@@ -12,8 +12,9 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
       :rackspace_api_key => @api_key)
   end
 
-  before(:all) do
+  before(:each) do
     @worker = MaestroDev::RackspaceWorker.new
+    @worker.stub(:write_output)
 
     @api_key = "myapi"
     @username = "johndoe"

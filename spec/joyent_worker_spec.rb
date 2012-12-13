@@ -13,8 +13,9 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
       :joyent_url => @url)
   end
 
-  before(:all) do
+  before(:each) do
     @worker = MaestroDev::JoyentWorker.new
+    @worker.stub(:write_output)
     @username = "maestrodev"
     @password = "xxx"
     @url = "https://api-mad.instantservers.es"
