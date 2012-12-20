@@ -46,7 +46,7 @@ require 'v_sphere_worker'
 #     cpus=1
 #   >]
 
-describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
+describe MaestroDev::VSphereWorker, :provider => "vsphere" do
 
   def connect
     Fog::Compute.new(
@@ -65,8 +65,10 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
     @datacenter = "Solutions"
     @username = 'root'
     @password = 'password'
-    @template_name = 'centos56gm'
+    @template_name = 'rhel64'
     @vm_name = 'new vm'
+
+    @connection = connect
 
     # test
     # @host = "172.16.184.129"
@@ -79,7 +81,7 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
 
   describe 'provision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "provision"},
         "host" => @host,
@@ -87,58 +89,81 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
         "username" => @username,
         "password" => @password,
         "template_name" => @template_name,
-        "name" => "xxx",
-        "ssh_commands" => ["hostname"]
+        "name" => "xxx"
       }
+
+      # @vms = @connection.list_virtual_machines
+      # @connection.should_receive(:list_virtual_machines).with({}).and_return(@vms)
     end
 
     it 'should provision a machine' do
       wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
+
+      # Fog.Mock is not complete
+      @connection.should_receive(:vm_clone).with({
+        "name" => "xxx",
+        "path" => "/Datacenters/Solutions/#{@template_name}",
+        "poweron" => true,
+        "wait" => false
+      }).and_return({
+        'vm_ref'   => 'vm-715',
+        'task_ref' => 'task-1234',
+      })
+
+      @worker.stub(:workitem => wi.to_h, :connect => @connection)
       @worker.provision
 
       wi.fields['__error__'].should eq(nil)
-      wi.fields['vsphere_server'].should eq(@host)
-      wi.fields['vsphere_username'].should eq(@username)
-      wi.fields['vsphere_password'].should eq(@password)
-      wi.fields['vsphere_ids'].should eq(["50323f93-6835-1178-8b8f-9e2109890e1a"])
+      wi.fields['vsphere_ids'].should eq(["5032c8a5-9c5e-ba7a-3804-832a03e16381"])
     end
 
     it 'should fail when template does not exist' do
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_name" => "doesnotexist"})})
 
-      @worker.stub(:workitem => wi.to_h)
+      @worker.stub(:workitem => wi.to_h, :connect => @connection)
       @worker.provision
       wi.fields['__error__'].should eq("VM template '/Datacenters/Solutions/doesnotexist' not found")
+    end
+
+    it 'should print an error if template fails to clone' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_name" => "another"})})
+      @worker.stub(:workitem => wi.to_h, :connect => @connection)
+      @connection.should_receive(:vm_clone).with({
+        "name" => "xxx",
+        "path" => "/Datacenters/Solutions/another",
+        "poweron" => true,
+        "wait" => false
+      }).and_raise(RbVmomi::Fault.new("message", "fault"))
+      @worker.provision
+
+      wi.fields['__error__'].should match(%r[^Error cloning template '/Datacenters/Solutions/another' as 'xxx'.*message\n])
     end
   end
 
   describe 'deprovision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "deprovision"},
         "vsphere_host" => @host,
         "vsphere_username" => @username,
         "vsphere_password" => @password,
-        "vsphere_ids" => ["50323f93-6835-1178-8b8f-9e2109890e1a", "5257dee8-050c-cbcd-ae25-db0e582ab530"],
+        "vsphere_ids" => ["5029c440-85ee-c2a1-e9dd-b63e39364603", "502916a3-b42e-17c7-43ce-b3206e9524dc"],
       }
     end
 
     it 'should deprovision a machine' do
       wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
+      @worker.stub(:workitem => wi.to_h, :connect => @connection)
 
-      connection = connect
-      stubs = connection.servers.find_all {|s| @fields["vsphere_ids"].include?(s.id)}
-
+      stubs = @connection.servers.find_all {|s| @fields["vsphere_ids"].include?(s.id)}
+      stubs.size.should == 2
       servers = double("servers")
-      connection.stub(:servers => servers)
-      @worker.stub(:connect => connection)
+      @connection.stub(:servers => servers)
 
       stubs.each do |s|
         servers.should_receive(:get).once.with(s.id).and_return(s)
-        s.ready?.should == false
+        s.stub(:ready? => false)
         s.should_not_receive(:stop)
         s.should_receive(:destroy).once
       end
@@ -148,19 +173,17 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere", :skip => true do
     end
 
     it 'should stop machine before deprovisioning' do
-      id = "5032c8a5-9c5e-ba7a-3804-832a03e16381"
+      id = "502916a3-b42e-17c7-43ce-b3206e9524dc"
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"vsphere_ids" => [id]})})
-      @worker.stub(:workitem => wi.to_h)
+      @worker.stub(:workitem => wi.to_h, :connect => @connection)
 
-      connection = connect
-      stub = connection.servers.find {|s| id == s.id}
-
+      stub = @connection.servers.find {|s| id == s.id}
+      stub.should_not be_nil
       servers = double("servers")
-      connection.stub(:servers => servers)
-      @worker.stub(:connect => connection)
+      @connection.stub(:servers => servers)
 
       servers.should_receive(:get).with(id).and_return(stub)
-      stub.ready?.should == true
+      stub.ready?.should be_true
       stub.should_receive(:destroy).once
 
       @worker.deprovision

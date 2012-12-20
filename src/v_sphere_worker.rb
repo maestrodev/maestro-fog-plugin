@@ -7,6 +7,9 @@ module Fog
   module Compute
     class Vsphere
       class Server < Fog::Compute::Server
+        def public_ip_address
+          ipaddress
+        end
         def error?
           false
         end
@@ -17,7 +20,6 @@ module Fog
     end
   end
 end
-
 
 module MaestroDev
   class VSphereWorker < FogWorker
