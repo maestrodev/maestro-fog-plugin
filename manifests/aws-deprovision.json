@@ -1,0 +1,9 @@
+{
+  "name" : "AWS deprovision",
+  "description" : "Deprovision servers on Amazon Web Services EC2. Deprovisions all servers started in a previous provision tasks.",
+  "class": "MaestroDev::AwsWorker",
+  "task":{
+    "command" : "/aws/deprovision",
+    "icon":"aws.png"
+  }
+}

@@ -1,6 +1,6 @@
 source :rubygems
 
-gem 'maestro_agent', '>= 1.4.0'#, :path => "../MaestroAgent/"
+gem 'maestro_agent', '>= 1.5.0'
 
 #dependencies
 gem "fog", "~>1.8.0"

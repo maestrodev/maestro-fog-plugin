@@ -98,12 +98,15 @@ module MaestroDev
       Maestro.log.debug "Server '#{s.name}' #{s.id} is now accessible through ssh"
       write_output("done\n")
 
-      if s.respond_to?('addresses') && !s.addresses.nil? && !s.addresses["private"].nil?
+      private_addr = ''
+      if s.respond_to?('addresses') && s.addresses && (s.addresses.is_a? Hash) && s.addresses["private"]
         private_addr = s.addresses["private"][0]["addr"]
+      elsif s.respond_to?('private_ip_address') && s.private_ip_address
+        private_addr = s.private_ip_address
+      end
+      unless private_addr.empty?
         set_field("#{provider}_private_ips", (get_field("#{provider}_private_ips") || []) << private_addr)
         set_field("cloud_private_ips", (get_field("cloud_private_ips") || []) << private_addr)
-      else
-        private_addr = ''
       end
 
       # save some values in the workitem so they are accessible for deprovision and other tasks
