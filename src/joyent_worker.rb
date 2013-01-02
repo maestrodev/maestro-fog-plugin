@@ -1,5 +1,19 @@
 require 'maestro_agent'
 require 'fog_worker'
+require 'fog'
+require 'fog/compute/models/server'
+
+module Fog
+  module Compute
+    class Joyent
+      class Server < Fog::Compute::Server
+        def image_id
+          dataset
+        end
+      end
+    end
+  end
+end
 
 module MaestroDev
   class JoyentWorker < FogWorker

@@ -10,6 +10,9 @@ module Fog
         def error?
           state == 'ERROR'
         end
+        def image_id
+          image_ref
+        end
       end
     end
   end

@@ -58,7 +58,7 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
 
   before(:each) do
     @worker = MaestroDev::VSphereWorker.new
-    @worker.stub(:write_output)
+    @worker.stub(:send_workitem_message)
 
     # mock
     @host = "localhost"

@@ -15,7 +15,7 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
 
   before(:each) do
     @worker = MaestroDev::JoyentWorker.new
-    @worker.stub(:write_output)
+    @worker.stub(:send_workitem_message)
     @username = "maestrodev"
     @password = "xxx"
     @url = "https://api-mad.instantservers.es"
@@ -25,7 +25,7 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
 
   describe 'provision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "provision"},
         "username" => @username,
@@ -59,7 +59,7 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
 
   describe 'deprovision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "deprovision"},
         "joyent_username" => @username,

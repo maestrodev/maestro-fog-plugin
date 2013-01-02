@@ -13,6 +13,9 @@ module Fog
         def state
           power_state
         end
+        def image_id
+          path
+        end
       end
     end
   end

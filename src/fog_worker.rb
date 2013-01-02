@@ -81,6 +81,8 @@ module MaestroDev
 
     # execute when server is ready
     def on_ready(s, commands)
+      create_server_on_master(s)
+
       msg = "Waiting for server '#{s.name}' #{s.id} to get a public ip"
       Maestro.log.debug msg
       write_output("#{msg}... ")
@@ -168,8 +170,8 @@ module MaestroDev
 
           end unless responses.nil?
           break
-        rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::SSH::Disconnect => e
-          log_output("[#{host}] Try #{i} - failed to connect: #{e}, retrying...", :warn)
+        rescue Errno::EHOSTUNREACH, Timeout::Error, Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::SSH::Disconnect => e
+          log_output("[#{host}] Try #{i} - failed to connect: #{e}, retrying...", :info)
           i = i+1
           if i > 10
             msg = "[#{host}] Could not connect to remote machine after 10 attempts"
@@ -179,6 +181,10 @@ module MaestroDev
             sleep 5
             next
           end
+        rescue Net::SSH::AuthenticationFailed => e
+          msg = "[#{host}] Could not connect to remote machine, authentication failed for user #{e.message}"
+          errors << msg
+          log_output(msg, :warn)
         end
       end
       return errors
@@ -352,6 +358,7 @@ module MaestroDev
           else
             s.destroy
           end
+          delete_server_on_master(s)
         rescue Exception => e
           log("Error destroying instance with id '#{id}'", e)
         end
@@ -359,6 +366,24 @@ module MaestroDev
 
       log_output("Maestro #{provider} deprovision complete!", :info)
     end
-  end
 
+    # save the server data in the Maestro database
+    def create_server_on_master(s)
+      image_id = s.respond_to?('image_id') ? s.image_id : 'no_image'
+      flavor_id = s.respond_to?('flavor_id') ? s.flavor_id : nil
+      create_record_with_fields("machine",
+        ["name",         "type",   "instance_id", "public_ipv4",       "image_id", "flavor_id"],
+        [server_name(s), provider, s.id,          s.public_ip_address, image_id  , flavor_id])
+    end
+
+    def delete_server_on_master(s)
+      delete_record("machine", server_name(s))
+      # on new versions of maestro (4.10+)
+      #delete_record("machine", {"instance_id" => s.id, "type" => provider})
+    end
+
+    def server_name(s)
+      (s.respond_to?('name') && s.name) ? s.name : s.id
+    end
+  end
 end

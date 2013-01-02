@@ -14,7 +14,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
 
   before(:each) do
     @worker = MaestroDev::RackspaceWorker.new
-    @worker.stub(:write_output)
+    @worker.stub(:send_workitem_message)
 
     @api_key = "myapi"
     @username = "johndoe"
@@ -24,7 +24,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
 
   describe 'provision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "provision"},
         "username" => @username,
@@ -69,7 +69,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
 
   describe 'deprovision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "deprovision"},
         "rackspace_username" => @username,

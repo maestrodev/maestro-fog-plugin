@@ -17,7 +17,7 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
 
   before(:each) do
     @worker = MaestroDev::OpenstackWorker.new
-    @worker.stub(:write_output)
+    @worker.stub(:send_workitem_message)
     @api_key = "myapi"
     @username = "johndoe"
     @image_id = "abc-123-456-789"
@@ -84,7 +84,7 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
 
   describe 'deprovision' do
 
-    before(:all) do
+    before(:each) do
       @fields = {
         "params" => {"command" => "deprovision"},
         "openstack_username" => @username,

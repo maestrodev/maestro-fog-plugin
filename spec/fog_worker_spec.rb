@@ -10,7 +10,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
     def provider
       "test"
     end
-    def write_output(msg)
+    def send_workitem_message
     end
   end
 
