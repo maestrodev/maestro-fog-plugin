@@ -56,7 +56,7 @@
         "host": "String",
         "datacenter": "String",
         "username": "String",
-        "password": "String",
+        "password": "Password",
         "template_name": "String"
       }
     }
