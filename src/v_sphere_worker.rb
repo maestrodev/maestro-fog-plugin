@@ -29,7 +29,7 @@ module MaestroDev
     end
 
     def required_fields
-      ['host', 'datacenter', 'username', 'password', 'template_name']
+      ['host', 'username', 'password', 'template_path']
     end
 
     def connect_options
@@ -46,33 +46,45 @@ module MaestroDev
 
     def create_server(connection, name)
       datacenter = get_field('datacenter')
-      template_name = get_field('template_name')
+      template_path = get_field('template_path')
+      dest_folder = get_field('destination_folder')
+      datastore = get_field('datastore')
+      full_dest_path = (dest_folder.nil? or dest_folder.empty?) ? name : "#{dest_folder}/#{name}"
 
-      msg = "Cloning VM #{template_name} into #{name}"
+      msg = "Cloning VM #{template_path} into #{full_dest_path}"
       Maestro.log.info msg
       write_output("#{msg}\n")
 
-      path = "/Datacenters/#{datacenter}/#{template_name}"
+      options = {
+        'name' => name,
+        'path' => template_path,
+        'poweron' => true,
+        'wait' => false
+      }
+
+      if dest_folder && !dest_folder.empty?
+        options.merge('dest_folder' => dest_folder)
+      end
+      if datastore && !datastore.empty?
+        options.merge('datastore' => datastore)
+      end
+
       begin
         # easier to do vm_clone than find the server and then clone
-        cloned = connection.vm_clone(
-          'name' => name,
-          'path' => path,
-          'poweron' => true,
-          'wait' => false)
+        cloned = connection.vm_clone(options)
       rescue Fog::Errors::NotFound => e
-        msg = "VM template '#{path}' not found"
+        msg = "VM template '#{template_path}' not found"
         Maestro.log.error msg
         set_error msg
         return
       rescue Exception => e
-        log("Error cloning template '#{path}' as '#{name}'", e)
+        log("Error cloning template '#{template_path}' as '#{full_dest_path}'", e)
         return
       end
       s = connection.servers.get(cloned['vm_ref'])
 
       if s.nil?
-        msg = "Failed to clone VM '#{path}' as '#{name}'"
+        msg = "Failed to clone VM '#{template_path}' as '#{full_dest_path}'"
         Maestro.log.error msg
         set_error msg
         return

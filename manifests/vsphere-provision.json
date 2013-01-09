@@ -1,63 +1,74 @@
 {
-  "name" : "vsphere provision",
-  "description" : "Provision servers with VMWare vSphere",
+  "name": "vsphere provision",
+  "description": "Provision servers with VMWare vSphere",
   "class": "MaestroDev::VSphereWorker",
-  "dependencies":[
+  "dependencies": [
     {
-      "name" : "rbvmomi",
-      "version" : "1.5.1",
-      "source" : "http://rubygems.org/"
+      "name": "rbvmomi",
+      "version": "1.5.1",
+      "source": "http://rubygems.org/"
     }
   ],
-  "task":{
-    "command" : "/vsphere/provision",
-    "inputs" :  {
+  "task": {
+    "command": "/vsphere/provision",
+    "icon": "vsphere.png",
+    "inputs": {
       "host": {
         "description": "vSphere host",
-        "required": true, 
-        "type": "String", 
+        "required": true,
+        "type": "String",
         "value": "localhost"
-      }, 
-      "datacenter": {
-        "description": "vSphere datacenter where the server will be created",
-        "required": true, 
-        "type": "String", 
-        "value": "ha-datacenter"
-      }, 
+      },
       "username": {
         "description": "vSphere username",
-        "required": true, 
-        "type": "String", 
+        "required": true,
+        "type": "String",
         "value": null
       },
       "password": {
         "description": "vSphere password",
-        "required": true, 
-        "type": "Password", 
+        "required": true,
+        "type": "Password",
         "value": null
-      }, 
-      "template_name": {
-        "description": "name of the server template to use",
-        "required": true, 
-        "type": "String", 
+      },
+      "template_path": {
+        "description": "path of the vm template to use, ie. /Datacenters/DC/MYTEMPLATE",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "destination_folder": {
+        "description": "name of the destination folder for the created vm, uses the template folder by default",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
+      "datastore": {
+        "description": "name of the datastore to use for the vm",
+        "required": false,
+        "type": "String",
         "value": null
       }
     },
-    "outputs" : {
-      "vsphere_ips": {"type" : "Array"},
-      "vsphere_ids": {"type" : "Array"}
-    },
-    "icon":"vsphere.png"
+    "outputs": {
+      "vsphere_ips": {
+        "type": "Array"
+      },
+      "vsphere_ids": {
+        "type": "Array"
+      }
+    }
   },
   "source_types": [
     {
-      "name" : "vsphere",
-      "options" : {
+      "name": "vsphere",
+      "options": {
         "host": "String",
-        "datacenter": "String",
         "username": "String",
         "password": "Password",
-        "template_name": "String"
+        "template_path": "String",
+        "destination_folder": "String",
+        "datastore": "String"
       }
     }
   ]
