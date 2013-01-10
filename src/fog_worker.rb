@@ -143,6 +143,9 @@ module MaestroDev
     # returns an array with errors, or empty if successful
     def provision_execute(s, commands)
       host = s.public_ip_address
+      ssh_password = get_field('ssh_password')
+      ssh_options = {}
+      ssh_options[:password] = ssh_password if (ssh_password and !ssh_password.empty?)
 
       errors = []
       return errors if (commands == nil) || (commands == '')
@@ -151,7 +154,7 @@ module MaestroDev
 
       for i in 1..10
         begin
-          responses = s.ssh(commands)
+          responses = s.ssh(commands, ssh_options)
           responses.each do |result|
             e = result.stderr
             o = result.stdout

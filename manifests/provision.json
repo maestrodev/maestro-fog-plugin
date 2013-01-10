@@ -49,6 +49,12 @@
           "type": "String", 
           "value": "root",
           "description": "username to use for ssh connection"
+      },
+      "ssh_password": {
+        "required": false,
+        "type": "String",
+        "value": null,
+        "description": "password to use for ssh connections if not using the ssh key (keys take precedence)"
       }
 
     },
@@ -63,6 +69,7 @@
     {
       "options" : {
         "ssh_user": "String",
+        "ssh_password": "Password",
         "private_key": "String",
         "private_key_path": "String"
       }
