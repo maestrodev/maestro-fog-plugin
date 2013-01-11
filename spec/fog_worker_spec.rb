@@ -240,7 +240,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       Fog::Compute.stub(:new => double("connection"))
       @worker.provision
 
-      wi.fields['__error__'].should eq("private_key or private_key_path is required for SSH")
+      wi.fields['__error__'].should eq("private_key, private_key_path or ssh_password are required for SSH")
       wi.fields['cloud_ids'].should be_nil
       wi.fields['test_ids'].should be_nil
     end

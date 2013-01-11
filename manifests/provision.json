@@ -52,7 +52,7 @@
       },
       "ssh_password": {
         "required": false,
-        "type": "String",
+        "type": "Password",
         "value": null,
         "description": "password to use for ssh connections if not using the ssh key (keys take precedence)"
       }

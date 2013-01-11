@@ -9,4 +9,4 @@ end
 
 Fog.mock!
 # reduce timeout for tests that force failure
-Fog.timeout = 2
+Fog.timeout = 3

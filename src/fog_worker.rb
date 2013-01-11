@@ -16,7 +16,7 @@ module MaestroDev
   class FogWorker < Maestro::MaestroWorker
 
     def log(message, exception)
-      msg = "#{message}: #{exception.message}\n#{exception.backtrace.join("\n")}"
+      msg = "#{message}: #{exception.class} #{exception.message}\n#{exception.backtrace.join("\n")}"
       Maestro.log.error msg
       set_error(msg)
     end
@@ -92,7 +92,10 @@ module MaestroDev
       Maestro.log.debug msg
       write_output("#{msg}... ")
 
-      s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? and !public_ip_address.empty? }
+      begin
+        s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? and !public_ip_address.empty? }
+      rescue Fog::Errors::TimeoutError => e
+      end
 
       # wait_for may timeout without getting public ip
       if s.public_ip_address.nil?
@@ -210,9 +213,15 @@ module MaestroDev
       end
 
       begin
+        msg = "Connecting to #{provider}"
+        Maestro.log.info msg
+        write_output "#{msg}..."
         connection = connect
+        Maestro.log.debug "Connected to #{provider}"
+        write_output("done\n")
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
         msg = "Unable to connect to #{provider}: #{e}"
+        write_output("#{msg}\n")
         Maestro.log.error msg
         set_error msg
         return
@@ -227,27 +236,35 @@ module MaestroDev
       username = get_field('ssh_user') || "root"
       private_key = get_field("private_key")
       private_key_path = get_field("private_key_path")
+      ssh_password = get_field("ssh_password")
+
+      # when ssh commands are set
       if !(commands.nil? or commands.empty?)
-        if private_key.nil? 
-          if private_key_path.nil?
-            msg = "private_key or private_key_path is required for SSH"
+        if private_key.nil? and private_key_path.nil? and ssh_password.nil?
+          msg = "private_key, private_key_path or ssh_password are required for SSH"
+          Maestro.log.error msg
+          set_error msg
+          return
+        end
+        if private_key_path
+          private_key_path = File.expand_path(private_key_path)
+          unless File.exist?(private_key_path)
+            msg = "private_key_path does not exist: #{private_key_path}"
             Maestro.log.error msg
             set_error msg
             return
-          else
-            private_key_path = File.expand_path(private_key_path)
-            unless File.exist?(private_key_path)
-              msg = "private_key_path does not exist: #{private_key_path}"
-              Maestro.log.error msg
-              set_error msg
-              return
-            end
           end
         end
       end
 
       name = get_field('name')
-      existing_names = connection.servers.map {|s| s.name} if !name.nil? and number_of_vms==1
+      if !name.nil? and number_of_vms==1
+        msg = "Looking for existing vms with name '#{name}'"
+        Maestro.log.debug msg
+        write_output "#{msg}..."
+        existing_names = connection.servers.map {|s| s.name}
+        write_output "done\n"
+      end
       # some providers require name, so let's assign a random one if not set to be sure
       # guarantee unique name if name is specified but taken already or launching more than 1 vm
       randomize_name = (name.nil? or name.empty? or (number_of_vms > 1) or existing_names.include?(name))

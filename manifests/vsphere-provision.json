@@ -31,14 +31,20 @@
         "type": "Password",
         "value": null
       },
+      "datacenter": {
+        "description": "Datacenter name",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
       "template_path": {
-        "description": "path of the vm template to use, ie. /Datacenters/DC/MYTEMPLATE",
+        "description": "path of the vm template to use, relative to the datacenter, ie. FolderNameHere/VMNameHere",
         "required": true,
         "type": "String",
         "value": null
       },
       "destination_folder": {
-        "description": "name of the destination folder for the created vm, uses the template folder by default",
+        "description": "name of the destination folder for the created vm, relative to the Datacenter. Uses the template folder by default",
         "required": false,
         "type": "String",
         "value": null
@@ -66,6 +72,7 @@
         "host": "String",
         "username": "String",
         "password": "Password",
+        "datacenter": "String",
         "template_path": "String",
         "destination_folder": "String",
         "datastore": "String"

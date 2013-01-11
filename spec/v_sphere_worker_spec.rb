@@ -64,8 +64,10 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
     @host = "localhost"
     @username = 'root'
     @password = 'password'
-    @template_path = '/Datacenters/Solutions/rhel64'
+    @datacenter = 'Solutions'
+    @template_path = 'rhel64'
     @vm_name = 'new vm'
+    @destination_folder = "newfolder"
 
     @connection = connect
 
@@ -85,7 +87,9 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
         "host" => @host,
         "username" => @username,
         "password" => @password,
+        "datacenter" => @datacenter,
         "template_path" => @template_path,
+        "destination_folder" => @destination_folder,
         "name" => "xxx"
       }
 
@@ -98,12 +102,15 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
 
       # Fog.Mock is not complete
       @connection.should_receive(:vm_clone).with({
+        "datacenter" => @datacenter,
         "name" => "xxx",
-        "path" => @template_path,
+        "template_path" => @template_path,
+        "dest_folder" => @destination_folder,
         "poweron" => true,
         "wait" => false
       }).and_return({
         'vm_ref'   => 'vm-715',
+        'new_vm'   => {'id' => 'vm-715'},
         'task_ref' => 'task-1234',
       })
 
@@ -115,25 +122,27 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
     end
 
     it 'should fail when template does not exist' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_path" => "/Datacenters/Solutions/doesnotexist"})})
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_path" => "doesnotexist"})})
 
       @worker.stub(:workitem => wi.to_h, :connect => @connection)
       @worker.provision
-      wi.fields['__error__'].should eq("VM template '/Datacenters/Solutions/doesnotexist' not found")
+      wi.fields['__error__'].should eq("VM template 'doesnotexist': Could not find VM template")
     end
 
     it 'should print an error if template fails to clone' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_path" => "/Datacenters/Solutions/another"})})
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_path" => "another"})})
       @worker.stub(:workitem => wi.to_h, :connect => @connection)
       @connection.should_receive(:vm_clone).with({
+        "datacenter" => @datacenter,
         "name" => "xxx",
-        "path" => "/Datacenters/Solutions/another",
+        "template_path" => "another",
+        "dest_folder" => @destination_folder,
         "poweron" => true,
         "wait" => false
       }).and_raise(RbVmomi::Fault.new("message", "fault"))
       @worker.provision
 
-      wi.fields['__error__'].should match(%r[^Error cloning template '/Datacenters/Solutions/another' as 'xxx'.*message\n])
+      wi.fields['__error__'].should match(%r[^Error cloning template 'another' as 'newfolder/xxx'.*message\n])
     end
   end
 

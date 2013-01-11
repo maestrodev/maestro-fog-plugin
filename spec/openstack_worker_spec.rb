@@ -6,7 +6,11 @@ require 'openstack_worker'
 describe MaestroDev::OpenstackWorker, :provider => "openstack" do
 
   def connect
-
+    keystone = Fog::Identity.new(
+      :provider           => 'openstack',
+      :openstack_auth_url => @auth_url,
+      :openstack_username => @username,
+      :openstack_api_key  => @api_key)
     Fog::Compute.new(
       :provider => "openstack",
       :openstack_tenant => @tenant,
@@ -92,16 +96,17 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
       }
     end
 
-    it 'should deprovision a machine' do
+    it 'should deprovision a machine', :skip => true do
       connection = connect
 
       # create 2 servers
       stubs = {}
       (1..2).each do |i|
 
-        s = connection.servers.create(:flavor_ref => @flavor_id,
-                                      :image_ref => @image_id,
-                                      :name => @name)
+        s = connection.servers.create(
+          :flavor_ref => @flavor_id,
+          :image_ref => @image_id,
+          :name => @name)
         s.wait_for { ready? }
         stubs[s.id]=s
       end

@@ -7,9 +7,6 @@ module Fog
   module Compute
     class Vsphere
       class Server < Fog::Compute::Server
-        def public_ip_address
-          ipaddress
-        end
         def state
           power_state
         end
@@ -51,29 +48,30 @@ module MaestroDev
       datastore = get_field('datastore')
       full_dest_path = (dest_folder.nil? or dest_folder.empty?) ? name : "#{dest_folder}/#{name}"
 
-      msg = "Cloning VM #{template_path} into #{full_dest_path}"
+      msg = "Cloning VM in datacenter #{datacenter}: #{template_path} into #{full_dest_path}"
       Maestro.log.info msg
       write_output("#{msg}\n")
 
       options = {
+        'datacenter' => datacenter,
         'name' => name,
-        'path' => template_path,
+        'template_path' => template_path,
         'poweron' => true,
         'wait' => false
       }
 
       if dest_folder && !dest_folder.empty?
-        options.merge('dest_folder' => dest_folder)
+        options['dest_folder'] = dest_folder
       end
       if datastore && !datastore.empty?
-        options.merge('datastore' => datastore)
+        options['datastore'] = datastore
       end
 
       begin
         # easier to do vm_clone than find the server and then clone
         cloned = connection.vm_clone(options)
-      rescue Fog::Errors::NotFound => e
-        msg = "VM template '#{template_path}' not found"
+      rescue ArgumentError, Fog::Errors::NotFound => e
+        msg = "VM template '#{template_path}': #{e}"
         Maestro.log.error msg
         set_error msg
         return
@@ -81,7 +79,7 @@ module MaestroDev
         log("Error cloning template '#{template_path}' as '#{full_dest_path}'", e)
         return
       end
-      s = connection.servers.get(cloned['vm_ref'])
+      s = connection.servers.get(cloned["new_vm"]["id"])
 
       if s.nil?
         msg = "Failed to clone VM '#{template_path}' as '#{full_dest_path}'"
