@@ -10,6 +10,13 @@ describe MaestroDev::FogWorker, :provider => "test" do
     def provider
       "test"
     end
+    def connect_options
+      {
+        :test_hostname => get_field('hostname'),
+        :test_username => get_field('username'),
+        :test_password => get_field('password')
+      }
+    end
     def send_workitem_message
     end
   end
@@ -17,6 +24,9 @@ describe MaestroDev::FogWorker, :provider => "test" do
   before(:each) do
     @worker = TestWorker.new
 
+    @hostname = "myhostname"
+    @username = "myusername"
+    @password = "mypassword"
     @ssh_user = "johndoe"
     @private_key = "aaaa"
   end
@@ -48,6 +58,9 @@ describe MaestroDev::FogWorker, :provider => "test" do
     before(:each) do
       @fields = {
         "name" => "test",
+        "hostname" => @hostname,
+        "username" => @username,
+        "password" => @password,
         "params" => {"command" => "provision"},
         "ssh_user" => @ssh_user,
         "ssh_commands" => ["hostname"],
@@ -60,7 +73,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       @worker.should_receive(:create_server).with(connection, "test").and_return(mock_server)
       @worker.provision
 
@@ -69,6 +82,9 @@ describe MaestroDev::FogWorker, :provider => "test" do
       wi.fields['test_ids'].compact.size.should == 1
       wi.fields['cloud_ips'].compact.size.should == 1
       wi.fields['test_ips'].compact.size.should == 1
+      wi.fields['test_hostname'].should eq("myhostname")
+      wi.fields['test_username'].should eq("myusername")
+      wi.fields['test_password'].should eq("mypassword")
     end
 
     # in Rackspace v2 cloud servers may be ready but not have a public ip yet
@@ -77,7 +93,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       server = mock_server_basic(1, "test")
       server.stub("ready?").and_return(true)
       ip = '192.168.1.1'
@@ -99,7 +115,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       server = mock_server_basic(1, "test")
       server.stub("ready?").and_return(true)
       server.stub(:public_ip_address).and_return(nil)
@@ -118,7 +134,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       server1 = mock_server_basic(1, "test 1")
       server1.stub("ready?").and_return(true)
       server1.stub(:public_ip_address).and_return(nil)
@@ -138,7 +154,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       server1 = mock_server(1, "test 1")
       server2 = mock_server_basic(2, "test 2")
       server2.stub(:public_ip_address => '192.168.1.1')
@@ -160,7 +176,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       server1 = mock_server_basic(1, "test 1")
       server2 = mock_server_basic(2, "test 2")
       server1.stub(:public_ip_address => '192.168.1.1')
@@ -193,7 +209,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       @worker.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(
         mock_server(1), mock_server(2), mock_server(3))
       @worker.provision
@@ -208,7 +224,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.stub(:workitem => wi.to_h)
 
       connection = double("connection", :servers => [])
-      @worker.stub(:connect => connection)
+      Fog::Compute.stub(:new => connection)
       @worker.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(
         mock_server(1), mock_server(2), mock_server(3))
       @worker.provision
@@ -221,7 +237,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
     it 'should fail if ssh is not properly configured' do
       wi = Ruote::Workitem.new({"fields" => @fields.reject {|k,v| k=="private_key"}})
       @worker.stub(:workitem => wi.to_h)
-      @worker.stub(:connect => double("connection"))
+      Fog::Compute.stub(:new => double("connection"))
       @worker.provision
 
       wi.fields['__error__'].should eq("private_key or private_key_path is required for SSH")
@@ -232,7 +248,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
     it 'should fail early if ssh key file does not exist' do
       wi = Ruote::Workitem.new({"fields" => @fields.reject {|k,v| k=="private_key"}.merge({"private_key_path" => "/blabla"})})
       @worker.stub(:workitem => wi.to_h)
-      @worker.stub(:connect => double("connection"))
+      Fog::Compute.stub(:new => double("connection"))
       @worker.provision
 
       wi.fields['__error__'].should eq("private_key_path does not exist: /blabla")
@@ -254,8 +270,12 @@ describe MaestroDev::FogWorker, :provider => "test" do
     before(:each) do
       @fields = {
         "params" => {"command" => "deprovision"},
-        "rackspace_username" => @username,
-        "rackspace_api_key" => @api_key
+        "username" => "do not use",
+        "hostname" => "do not use",
+        "password" => "do not use",
+        "test_username" => @username,
+        "test_hostname" => @hostname,
+        "test_password" => @password
       }
     end
 
@@ -266,7 +286,12 @@ describe MaestroDev::FogWorker, :provider => "test" do
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"test_ids" => stubs.map { |s| s.id }})})
       @worker.stub(:workitem => wi.to_h)
       servers = double("servers")
-      @worker.stub(:connect => double("connection", :servers => servers))
+      Fog::Compute.should_receive(:new).with({
+        :provider=>"test",
+        :test_hostname=>"myhostname",
+        :test_username=>"myusername",
+        :test_password=>"mypassword"
+        }).and_return(double("connection", :servers => servers))
 
       stubs.each do |s|
         servers.should_receive(:get).once.with(s.id).and_return(s)

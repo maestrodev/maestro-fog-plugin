@@ -56,12 +56,17 @@ module MaestroDev
       # noop
     end
 
-    def connect
-      opts = get_field("#{provider}_connect_options")
-      if opts.nil?
-        opts = connect_options
-        opts.each { |k,v| set_field(k.to_s, v) }
+    def connect(overwrite_from_fields = false)
+      opts = connect_options
+      # used for deprovision, get the fields set by the provision task
+      # the field names could have been overwritten by other tasks
+      if overwrite_from_fields
+        opts.each do |k,v|
+          field_value = get_field(k.to_s)
+          opts[k] = field_value if field_value
+        end
       end
+      opts.each { |k,v| set_field(k.to_s, v) }
       Fog::Compute.new(opts.merge(:provider => provider))
     end
 
@@ -343,7 +348,7 @@ module MaestroDev
       end
 
       begin
-        connection = connect
+        connection = connect(true)
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
         msg = "Unable to connect to #{provider}: #{e}"
         Maestro.log.error msg
