@@ -122,6 +122,8 @@ module MaestroDev
       # save some values in the workitem so they are accessible for deprovision and other tasks
       set_field("#{provider}_ips", (get_field("#{provider}_ips") || []) << s.public_ip_address)
       set_field("cloud_ips", (get_field("cloud_ips") || []) << s.public_ip_address)
+      set_field("#{provider}_names", (get_field("#{provider}_names") || []) << server_name(s))
+      set_field("cloud_names", (get_field("cloud_names") || []) << server_name(s))
 
       log_output("Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'", :info)
 

@@ -25,8 +25,10 @@ All provision tasks will set some fields that can be reused in later tasks using
 
 * **fields[:cloud_ips]**: array with the ips of the servers started in all providers in current composition
 * **fields[:cloud_ips]**: array with the ips of the servers started in all providers in current composition
-* **fields[:*provider_name*_ips]**: array with the ips of the servers started (ie. fields[:rackspace_ips])
-* **fields[:*provider_name*_ids]**: array with the ids of the servers started(ie. fields[:rackspace_ids])
+* **fields[:cloud_names]**: array with the names of the servers started in all providers in current composition
+* **fields[:provider_name_ips]**: array with the ips of the servers started (ie. fields[:rackspace_ips])
+* **fields[:provider_name_ids]**: array with the ids of the servers started (ie. fields[:rackspace_ids])
+* **fields[:provider_name_names]**: array with the name of the servers started (ie. fields[:rackspace_ids])
 
 For instance you can add a confirmation task that will display the ips of the vms using ruby syntax
 

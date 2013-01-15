@@ -40,7 +40,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
 
   def mock_server(id=1, name="test")
     server = mock_server_basic(id, name)
-    server.stub({:public_ip_address => '192.168.1.1'})
+    server.stub({:public_ip_address => "192.168.1.#{id}"})
     server.should_receive(:username=).with(@ssh_user)
     server.should_receive(:private_key_path=).with(nil)
     server.should_receive(:private_key=).with(@private_key)
@@ -78,10 +78,36 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].compact.size.should == 1
-      wi.fields['test_ids'].compact.size.should == 1
-      wi.fields['cloud_ips'].compact.size.should == 1
-      wi.fields['test_ips'].compact.size.should == 1
+      wi.fields['cloud_ids'].should eq([1])
+      wi.fields['test_ids'].should eq([1])
+      wi.fields['cloud_ips'].should eq(["192.168.1.1"])
+      wi.fields['test_ips'].should eq(["192.168.1.1"])
+      wi.fields['cloud_names'].should eq(["test"])
+      wi.fields['test_names'].should eq(["test"])
+      wi.fields['test_hostname'].should eq("myhostname")
+      wi.fields['test_username'].should eq("myusername")
+      wi.fields['test_password'].should eq("mypassword")
+    end
+
+    it 'should provision several servers' do
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 3})})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      Fog::Compute.stub(:new => connection)
+      server1 = mock_server(1, "test 1")
+      server2 = mock_server(2, "test 2")
+      server3 = mock_server(3, "test 3")
+      @worker.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(server1, server2, server3)
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].should eq([1, 2, 3])
+      wi.fields['test_ids'].should eq([1, 2, 3])
+      wi.fields['cloud_ips'].should eq(["192.168.1.1", "192.168.1.2", "192.168.1.3"])
+      wi.fields['test_ips'].should eq(["192.168.1.1", "192.168.1.2", "192.168.1.3"])
+      wi.fields['cloud_names'].should eq(["test 1", "test 2", "test 3"])
+      wi.fields['test_names'].should eq(["test 1", "test 2", "test 3"])
       wi.fields['test_hostname'].should eq("myhostname")
       wi.fields['test_username'].should eq("myusername")
       wi.fields['test_password'].should eq("mypassword")
@@ -103,11 +129,10 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].compact.size.should == 1
-      wi.fields['test_ids'].compact.size.should == 1
-      wi.fields['cloud_ips'].compact.size.should == 1
-      wi.fields['cloud_ips'].first.should eq(ip)
-      wi.fields['test_ips'].compact.size.should == 1
+      wi.fields['cloud_ids'].should eq([1])
+      wi.fields['test_ids'].should eq([1])
+      wi.fields['cloud_ips'].should eq(["192.168.1.1"])
+      wi.fields['test_ips'].should eq(["192.168.1.1"])
     end
 
     it 'should fail if server does not have public ip' do
@@ -123,8 +148,8 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should eq("All servers failed to provision")
-      wi.fields['cloud_ids'].compact.size.should == 1
-      wi.fields['test_ids'].compact.size.should == 1
+      wi.fields['cloud_ids'].should eq([1])
+      wi.fields['test_ids'].should eq([1])
       wi.fields['cloud_ips'].should be_nil
       wi.fields['test_ips'].should be_nil
     end
@@ -143,10 +168,15 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].compact.size.should == 2
-      wi.fields['test_ids'].compact.size.should == 2
-      wi.fields['cloud_ips'].compact.size.should == 1
-      wi.fields['test_ips'].compact.size.should == 1
+      wi.fields['cloud_ids'].should eq([1,2])
+      wi.fields['test_ids'].should eq([1,2])
+      wi.fields['cloud_ips'].should eq(["192.168.1.2"])
+      wi.fields['test_ips'].should eq(["192.168.1.2"])
+      wi.fields['cloud_names'].should eq(["test 2"])
+      wi.fields['test_names'].should eq(["test 2"])
+      wi.fields['test_hostname'].should eq("myhostname")
+      wi.fields['test_username'].should eq("myusername")
+      wi.fields['test_password'].should eq("mypassword")
     end
 
     it 'should not fail if some servers fail to provision' do
@@ -157,7 +187,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       Fog::Compute.stub(:new => connection)
       server1 = mock_server(1, "test 1")
       server2 = mock_server_basic(2, "test 2")
-      server2.stub(:public_ip_address => '192.168.1.1')
+      server2.stub(:public_ip_address => '192.168.1.2')
       failed_ssh = ssh_result
       failed_ssh.status=1
       server2.should_receive(:ssh).once.and_return([failed_ssh])
@@ -165,10 +195,10 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].compact.size.should == 2
-      wi.fields['test_ids'].compact.size.should == 2
-      wi.fields['cloud_ips'].compact.size.should == 2
-      wi.fields['test_ips'].compact.size.should == 2
+      wi.fields['cloud_ids'].should eq([1,2])
+      wi.fields['test_ids'].should eq([1,2])
+      wi.fields['cloud_ips'].should eq(["192.168.1.1", "192.168.1.2"])
+      wi.fields['test_ips'].should eq(["192.168.1.1", "192.168.1.2"])
     end
 
     it 'should fail if all servers fail to provision' do
@@ -189,10 +219,10 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should eq("All servers failed to provision")
-      wi.fields['cloud_ids'].compact.size.should == 2
-      wi.fields['test_ids'].compact.size.should == 2
-      wi.fields['cloud_ips'].compact.size.should == 2
-      wi.fields['test_ips'].compact.size.should == 2
+      wi.fields['cloud_ids'].should eq([1,2])
+      wi.fields['test_ids'].should eq([1,2])
+      wi.fields['cloud_ips'].should eq(["192.168.1.1", "192.168.1.2"])
+      wi.fields['test_ips'].should eq(["192.168.1.1", "192.168.1.2"])
     end
 
     it 'should provision a machine with a random name when name is not provided' do
@@ -215,8 +245,8 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].compact.size.should == 3
-      wi.fields['test_ids'].compact.size.should == 3
+      wi.fields['cloud_ids'].should eq([1,2,3])
+      wi.fields['test_ids'].should eq([1,2,3])
     end
 
     it 'should provision more than one server with random names when name is provided' do
@@ -230,8 +260,8 @@ describe MaestroDev::FogWorker, :provider => "test" do
       @worker.provision
 
       wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].compact.size.should == 3
-      wi.fields['test_ids'].compact.size.should == 3
+      wi.fields['cloud_ids'].should eq([1,2,3])
+      wi.fields['test_ids'].should eq([1,2,3])
     end
 
     it 'should fail if ssh is not properly configured' do
