@@ -299,7 +299,7 @@ module MaestroDev
       set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
 
       # if there was an error provisioning servers, return
-      return if !get_field("__error__").nil?
+      return if !get_field("__error__").nil? and !get_field("__error__").empty?
 
       # wait for servers to be up and set them up
       servers_ready = []
