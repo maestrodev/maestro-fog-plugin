@@ -79,10 +79,18 @@ module MaestroDev
         log("Error cloning template '#{template_path}' as '#{full_dest_path}'", e)
         return
       end
-      s = connection.servers.get(cloned["new_vm"]["id"])
 
+      id = cloned["new_vm"] ? cloned["new_vm"]["id"] : nil
+      if id.nil?
+        msg = "VSphere failed to return cloned VM id while cloning '#{template_path}' as '#{full_dest_path}'"
+        Maestro.log.error msg
+        set_error msg
+        return
+      end
+
+      s = connection.servers.get(id)
       if s.nil?
-        msg = "Failed to clone VM '#{template_path}' as '#{full_dest_path}'"
+        msg = "Failed to find newly cloned VM with id #{id} while cloning '#{template_path}' as '#{full_dest_path}'"
         Maestro.log.error msg
         set_error msg
         return
