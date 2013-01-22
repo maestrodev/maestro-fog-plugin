@@ -15,9 +15,7 @@ module MaestroDev
   
     def find_zone(dns)
       write_output("Searching For Zone #{get_field('dns_zone')}... ")
-      zone = dns.zones.create(
-        :domain => get_field('dns_zone')
-      )
+      zone = dns.zones.all.find{|zone| zone.domain == get_field('dns_zone')}
       if(zone)
         write_output("Found")
       else
@@ -51,6 +49,7 @@ module MaestroDev
         record = create_record(dns, zone) if !error
       rescue StandardError => e
         set_error("Failed To Create Record Zone = #{get_field('dns_zone')} Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = #{get_field('dns_type')} " + e)
+        puts e, e.backtrace.join("\n")
       end        
     end
     
