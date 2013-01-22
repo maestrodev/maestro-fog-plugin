@@ -38,6 +38,7 @@ task :package do
   manifest = []
   merge_manifests(manifest, "provision")
   merge_manifests(manifest, "deprovision")
+  merge_manifests(manifest, "create")
   manifest.each { |m| m['version'] = "#{version}-#{commit}" }
   File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
   

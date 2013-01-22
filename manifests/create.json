@@ -1,0 +1,60 @@
+{
+  "license" : "Apache 2.0",
+  "author": "MaestroDev",
+  "version": "updated at build time",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.7.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "inputs" :  {
+
+      /* common fields */
+      "dns_zone": {
+          "description": "Zone for adding new record to", 
+          "required": true, 
+          "type": "String", 
+          "value": ""
+      }, 
+      "dns_name": {
+          "description": "Name of the new DNS entry", 
+          "required": true, 
+          "type": "String", 
+          "value": ""
+      }, 
+      "dns_value": {
+          "description": "Value of the new DNS record",
+          "required": true, 
+          "type": "String", 
+          "value": ""
+      }, 
+      "dns_type": {
+          "description": "Type of the new DNS Entry",
+          "required": true, 
+          "type": "String", 
+          "value": "A"
+      }
+
+    },
+    "outputs" : {
+      "cloud_ips": {"type" : "Array"},
+      "cloud_ids": {"type" : "Array"}
+    },
+    "tool_name":"Cloud",
+    "icon":"cloud.png"
+  },
+  "source_types": [
+    {
+      "options" : {
+        "ssh_user": "String",
+        "ssh_password": "Password",
+        "private_key": "String",
+        "private_key_path": "String"
+      }
+    }
+  ]
+}
