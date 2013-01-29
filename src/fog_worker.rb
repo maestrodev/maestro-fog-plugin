@@ -88,21 +88,21 @@ module MaestroDev
     def on_ready(s, commands)
       create_server_on_master(s)
 
-      msg = "Waiting for server '#{s.name}' #{s.id} to get a public ip"
-      Maestro.log.debug msg
-      write_output("#{msg}... ")
+      wait_for_public_ip = get_field('wait_for_public_ip')
 
-      begin
-        s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? and !public_ip_address.empty? }
-      rescue Fog::Errors::TimeoutError => e
-      end
+      unless wait_for_public_ip == false
+        msg = "Waiting for server '#{s.name}' #{s.id} to get a public ip"
+        Maestro.log.debug msg
+        write_output("#{msg}... ")
 
-      # wait_for may timeout without getting public ip
-      if s.public_ip_address.nil?
-        msg = "Server '#{s.name}' #{s.id} failed to get a public ip"
-        Maestro.log.warn msg
-        write_output("failed\n")
-        return nil
+        begin
+          s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !public_ip_address.nil? and !public_ip_address.empty? }
+        rescue Fog::Errors::TimeoutError => e
+          msg = "Server '#{s.name}' #{s.id} failed to get a public ip"
+          Maestro.log.warn msg
+          write_output("failed\n")
+          return nil
+        end
       end
 
       Maestro.log.debug "Server '#{s.name}' #{s.id} is now accessible through ssh"
@@ -120,8 +120,10 @@ module MaestroDev
       end
 
       # save some values in the workitem so they are accessible for deprovision and other tasks
-      set_field("#{provider}_ips", (get_field("#{provider}_ips") || []) << s.public_ip_address)
-      set_field("cloud_ips", (get_field("cloud_ips") || []) << s.public_ip_address)
+      unless s.public_ip_address.nil?
+        set_field("#{provider}_ips", (get_field("#{provider}_ips") || []) << s.public_ip_address)
+        set_field("cloud_ips", (get_field("cloud_ips") || []) << s.public_ip_address)
+      end
       set_field("#{provider}_names", (get_field("#{provider}_names") || []) << server_name(s))
       set_field("cloud_names", (get_field("cloud_names") || []) << server_name(s))
 

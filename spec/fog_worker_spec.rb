@@ -135,6 +135,28 @@ describe MaestroDev::FogWorker, :provider => "test" do
       wi.fields['test_ips'].should eq(["192.168.1.1"])
     end
 
+    # in mCloud, servers don't have a public ip assigned automatically.
+    it 'should not wait for public ip if not told to' do
+      fields = @fields.clone
+      fields['wait_for_public_ip'] = false
+      fields.delete('ssh_commands')
+      wi = Ruote::Workitem.new({"fields" => fields})
+      @worker.stub(:workitem => wi.to_h)
+
+      connection = double("connection", :servers => [])
+      Fog::Compute.stub(:new => connection)
+      server = mock_server_basic(1, "test")
+      server.stub("ready?").and_return(true)
+      server.stub(:public_ip_address).and_return(nil)
+      @worker.stub(:create_server => server)
+      @worker.provision
+
+      wi.fields['__error__'].should be_nil
+      wi.fields['cloud_ids'].should eq([1])
+      wi.fields['test_ids'].should eq([1])
+      wi.fields['cloud_ips'].should be_nil
+    end
+
     it 'should fail if server does not have public ip' do
       wi = Ruote::Workitem.new({"fields" => @fields})
       @worker.stub(:workitem => wi.to_h)

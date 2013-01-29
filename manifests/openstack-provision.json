@@ -70,6 +70,12 @@
           "required": false, 
           "type": "String", 
           "value": null
+      },
+      "wait_for_public_ip": {
+        "description": "set to true if plugin should look for a public ip address.",
+        "required": true,
+        "type": "Boolean",
+        "value": true
       }
     },
     "outputs" : {
