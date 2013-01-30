@@ -108,12 +108,8 @@ module MaestroDev
       Maestro.log.debug "Server '#{s.name}' #{s.id} is now accessible through ssh"
       write_output("done\n")
 
-      private_addr = ''
-      if s.respond_to?('addresses') && s.addresses && (s.addresses.is_a? Hash) && s.addresses["private"]
-        private_addr = s.addresses["private"][0]["addr"]
-      elsif s.respond_to?('private_ip_address') && s.private_ip_address
-        private_addr = s.private_ip_address
-      end
+      private_addr = private_address(s)
+
       unless private_addr.empty?
         set_field("#{provider}_private_ips", (get_field("#{provider}_private_ips") || []) << private_addr)
         set_field("cloud_private_ips", (get_field("cloud_private_ips") || []) << private_addr)
@@ -152,16 +148,35 @@ module MaestroDev
       return s
     end
 
+    def private_address(s)
+      private_addr = ''
+      if s.respond_to?('addresses') && s.addresses && (s.addresses.is_a? Hash) && s.addresses["private"]
+        private_addr = s.addresses["private"][0]["addr"]
+      elsif s.respond_to?('private_ip_address') && s.private_ip_address
+        private_addr = s.private_ip_address
+      end
+      private_addr
+    end
+
     # returns an array with errors, or empty if successful
     def provision_execute(s, commands)
-      host = s.public_ip_address
+      errors = []
+      return errors if (commands.nil? || commands.empty)
+
+      if (!get_field("cloud_ips").nil? and !get_field("cloud_ips").empty?)
+        host = get_field("cloud_ips")[0]
+      elsif (!get_field("cloud_private_ips").nil? and !get_field("cloud_private_ips").empty?)
+        host = get_field("cloud_private_ips")[0]
+      else
+        msg = "No IP address associated to the machine #{host} - cannot run SSH command"
+        errors << msg
+        log_output(msg, :info)
+        return errors
+      end
+
       ssh_password = get_field('ssh_password')
       ssh_options = {}
       ssh_options[:password] = ssh_password if (ssh_password and !ssh_password.empty?)
-
-      errors = []
-      return errors if (commands == nil) || (commands == '')
-
       log_output("Running SSH Commands On New Machine #{host} - #{commands.join(", ")}", :info)
 
       for i in 1..10
