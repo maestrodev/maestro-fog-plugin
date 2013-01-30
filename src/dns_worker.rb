@@ -6,13 +6,14 @@ module MaestroDev
   class DnsWorker < Maestro::MaestroWorker
   
     def get_timer_from_soa(soa)
-      soa.match(/\d{4}\d{2}\d{2}\d{2}/)[0]
+      soa.split(/\s/)[2]
     end
   
     def increment_timer_from_soa(timer)
-      date = Date.strptime(timer.match(/\d{4}\d{2}\d{2}/)[0], "%Y%m%d")
+      date = timer.match(/\d{4}\d{2}\d{2}/).andand[0]
+      date = Date.strptime(date, "%Y%m%d") unless date.nil?
 
-      if date == Date.today
+      if date and date == Date.today
         #increment counter
         tick = timer.match(/\d{4}\d{2}\d{2}(\d{2})/)[1]
 
@@ -27,7 +28,9 @@ module MaestroDev
     end
   
     def replace_timer_in_soa(soa, timer)
-      soa.gsub(/\d{4}\d{2}\d{2}\d{2}/, timer)
+      columns = soa.split(/\s/)
+      columns[2] = timer
+      columns.join(" ")
     end
   
     def update_soa_record(soa_record)
