@@ -161,7 +161,7 @@ module MaestroDev
     # returns an array with errors, or empty if successful
     def provision_execute(s, commands)
       errors = []
-      return errors if (commands.nil? || commands.empty)
+      return errors if (commands.nil? or commands.empty?)
 
       if (!get_field("cloud_ips").nil? and !get_field("cloud_ips").empty?)
         host = get_field("cloud_ips")[0]
