@@ -75,7 +75,7 @@ module MaestroDev
       if(record)
         write_output(" Created\n")
       else
-        write_output("Failed\n")
+        write_output(" Failed\n")
         set_error("Failed To Create Record")
       end
       
@@ -85,7 +85,29 @@ module MaestroDev
       return record
     end
     
-    def work
+    def modify_record(dns, zone)
+      write_output("\nModifying Record Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = get_field('dns_type')...")
+        record = zone.records.all.find{|record| record.name == get_field('dns_name')}
+          
+      if(record)
+        record_attributes = {
+          :value => get_field('dns_value')
+        }
+        record_attributes[:type] = get_field('dns_type')
+        record.modify(record_attributes)
+        write_output(" Updated\n")
+      else
+        write_output(" Failed\n")
+        set_error("Failed To Modify Record, Unable to find record")
+      end
+      
+      # soa_record = zone.records.get(get_field('dns_zone'), "SOA")
+      # soa_record = update_soa_record(soa_record)
+
+      return record
+    end
+    
+    def create
       begin
         dns = connect_dns
         
@@ -95,6 +117,18 @@ module MaestroDev
         set_error("Failed To Create Record Zone = #{get_field('dns_zone')} Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = #{get_field('dns_type')} " + e)
         puts e, e.backtrace.join("\n")
       end        
+    end
+    
+    def modify
+      begin
+        dns = connect_dns
+        
+        zone = find_zone(dns) if !error?
+        record = modify_record(dns, zone) if !error?
+      rescue StandardError => e
+        set_error("Failed To Modify Record Zone = #{get_field('dns_zone')} Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = get_field('dns_type') " + e)
+        puts e, e.backtrace.join("\n")
+      end 
     end
     
   end

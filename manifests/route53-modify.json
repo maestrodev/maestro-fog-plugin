@@ -1,9 +1,9 @@
 {
-  "name" : "Route53 create record",
-  "description" : "Create a new DNS entry in Amazon Web Services Route53",
+  "name" : "Route53 modify record",
+  "description" : "Modify an existing DNS entry in Amazon Web Services Route53",
   "class": "MaestroDev::DnsWorker",
   "task":{
-    "command" : "/dns/create",
+    "command" : "/dns/modify",
     "inputs" : {
       "access_key_id": {
           "description": "AWS access key id", 

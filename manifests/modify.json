@@ -15,30 +15,29 @@
 
       /* common fields */
       "dns_zone": {
-          "description": "Zone for adding new record to", 
+          "description": "Zone for adding record to", 
           "required": true, 
           "type": "String", 
           "value": ""
       }, 
       "dns_name": {
-          "description": "Name of the new DNS entry", 
+          "description": "Name of the DNS entry", 
           "required": true, 
           "type": "String", 
           "value": ""
       }, 
       "dns_value": {
-          "description": "Value of the new DNS record",
+          "description": "New value of the DNS record",
           "required": true, 
           "type": "String", 
           "value": ""
-      }, 
+      },
       "dns_type": {
-          "description": "Type of the new DNS Entry",
-          "required": true, 
+          "description": "New type of the DNS record",
+          "required": false, 
           "type": "String", 
-          "value": "A"
+          "value": ""
       }
-
     },
     "outputs" : {
     },
