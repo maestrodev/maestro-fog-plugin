@@ -3,6 +3,44 @@
   "description" : "Deprovision servers in Rackspace. Deprovisions all servers started in a previous provision tasks.",
   "class": "MaestroDev::RackspaceWorker",
   "task":{
+    "inputs" : {
+      "username": {
+        "description": "Rackspace username",
+        "required": false, 
+        "type": "String", 
+        "value": null
+      },
+      "api_key": {
+        "description": "Rackspace API key",
+        "required": false, 
+        "type": "Password", 
+        "value": null
+      }, 
+      "version": {
+        "description": "API version to use: v1 or v2 for Open Cloud Servers",
+        "required": false, 
+        "type": "String", 
+        "value": "v2"
+      }, 
+      "endpoint": {
+        "description": "endpoint used for Rackspace v2, choosing the region to use",
+        "required": false, 
+        "type": "String", 
+        "value": "https://dfw.servers.api.rackspacecloud.com/v2"
+      }, 
+      "auth_url": {
+        "description": "authentication endpoint, default to https://auth.api.rackspacecloud.com for US accounts, https://lon.auth.api.rackspacecloud.com for UK ones",
+        "required": false, 
+        "type": "String", 
+        "value": "https://auth.api.rackspacecloud.com"
+      },
+      "dns_names": {
+        "description": "list of dns image names to deprovision",
+        "required": false, 
+        "type": "Array", 
+        "value": []
+      }
+    },
     "command" : "/rackspace/deprovision",
     "icon":"rackspace.png"
   }

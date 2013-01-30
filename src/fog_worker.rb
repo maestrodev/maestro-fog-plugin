@@ -376,7 +376,7 @@ module MaestroDev
     def deprovision
       log_output("Starting #{provider} deprovision", :info)
 
-      ids = get_field("#{provider}_ids")
+      ids = get_field("#{provider}_ids") || get_field("dns_names")
 
       if ids.nil?
         log_output("No servers found to be deprovisioned", :warn)
@@ -395,7 +395,7 @@ module MaestroDev
       ids.each do |id|
         log_output("Deprovisioning VM with id '#{id}'", :info)
         begin
-          s = connection.servers.get(id)
+          s = connection.servers.get(id) || connection.servers.all.find{|server| server.name == id if server.respond_to?('name') }
 
           if s.nil?
             log_output("VM with id '#{id}' not found, ignoring", :warn)

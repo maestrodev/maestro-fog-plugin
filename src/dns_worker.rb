@@ -79,8 +79,8 @@ module MaestroDev
         set_error("Failed To Create Record")
       end
       
-      soa_record = zone.records.get(get_field('dns_zone'), "SOA")
-      soa_record = update_soa_record(soa_record)
+      # soa_record = zone.records.get(get_field('dns_zone'), "SOA")
+      # soa_record = update_soa_record(soa_record)
 
       return record
     end
