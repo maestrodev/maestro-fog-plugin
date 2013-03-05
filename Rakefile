@@ -63,8 +63,8 @@ def merge_manifests(manifest, action)
     connect_parent_f = "manifests/#{provider}-connect.json"
     if File.exist? connect_parent_f
       connect_parent = JSON.parse(IO.read(connect_parent_f))
-      # no fields are required for deprovision
-      connect_parent["task"]["inputs"].each{|k,v| v["required"]=false} if action == "deprovision"
+      # no fields are required for deprovision, set them to nil
+      connect_parent["task"]["inputs"].each{|k,v| v["value"]=nil; v["required"]=false} if action == "deprovision"
       merged = merge_manifest(parent, JSON.parse(IO.read(f)))
       merged = merge_manifest(merged, connect_parent)
     else
