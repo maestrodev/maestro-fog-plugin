@@ -1,0 +1,52 @@
+{
+  "task": {
+    "inputs": {
+      "auth_url": {
+        "description": "the URL where the autentication service can be reached (eg http://hostname:35357/v2.0/tokens",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "tenant": {
+        "description": "the OpenStack tenant (aka project)",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "username": {
+        "description": "username",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "api_key": {
+        "description": "API key",
+        "required": true,
+        "type": "Password",
+        "value": null
+      },
+      "region": {
+        "description": "region identifier, may be required for some providers",
+        "required": false,
+        "type": "String",
+        "value": null
+      }
+    }
+  },
+  "source_types": [
+    {
+      "name": "openstack",
+      "options": {
+        "auth_url": "String",
+        "tenant": "String",
+        "username": "String",
+        "api_key": "Password",
+        "image_id": "String",
+        "flavor_id": "String",
+        "key_name": "String",
+        "public_key": "String",
+        "security_group": "String"
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "task": {
+    "inputs": {
+      "access_key_id": {
+        "description": "AWS access key id",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "secret_access_key": {
+        "description": "AWS secret access key",
+        "required": true,
+        "type": "Password",
+        "value": null
+      },
+      "region": {
+        "description": "AWS region identifier",
+        "required": false,
+        "type": "String",
+        "value": "us-east-1"
+      }
+    }
+  },
+  "source_types": [
+    {
+      "name": "aws",
+      "options": {
+        "access_key_id": "String",
+        "secret_access_key": "Password",
+        "username": "String",
+        "region": "String",
+        "availability_zone": "String",
+        "image_id": "String",
+        "flavor_id": "String",
+        "key_name": "String",
+        // "groups": "Array", array sources not supported yet
+        "user_data": "String"
+      }
+    }
+  ]
+}

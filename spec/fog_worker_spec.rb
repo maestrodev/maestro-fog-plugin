@@ -337,19 +337,44 @@ describe MaestroDev::FogWorker, :provider => "test" do
       stubs = [server1, server2]
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"test_ids" => stubs.map { |s| s.id }})})
       @worker.stub(:workitem => wi.to_h)
-      servers = double("servers")
       Fog::Compute.should_receive(:new).with({
         :provider=>"test",
         :test_hostname=>"myhostname",
         :test_username=>"myusername",
         :test_password=>"mypassword"
-        }).and_return(double("connection", :servers => servers))
+        }).and_return(double("connection", :servers => stubs))
 
       stubs.each do |s|
-        servers.should_receive(:get).once.with(s.id).and_return(s)
+        stubs.should_receive(:get).once.with(s.id).and_return(s)
         s.should_receive(:destroy).once
         s.should_not_receive(:stop)
       end
+
+      @worker.deprovision
+      wi.fields['__error__'].should be_nil
+    end
+
+    it 'should destroy servers by id or name' do
+      server1 = Fog::Compute::Server.new(:id => 1)
+      server1.stub(:name => "server1")
+      server2 = Fog::Compute::Server.new(:id => 2)
+      server2.stub(:name => "server2")
+      stubs = [server1, server2]
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"instance_ids" => ["1", "server2"]})})
+      @worker.stub(:workitem => wi.to_h)
+      Fog::Compute.should_receive(:new).with({
+        :provider=>"test",
+        :test_hostname=>"myhostname",
+        :test_username=>"myusername",
+        :test_password=>"mypassword"
+        }).and_return(double("connection", :servers => stubs))
+
+      stubs.should_receive(:get).once.with("1").and_return(server1)
+      server1.should_receive(:destroy).once
+      server1.should_not_receive(:stop)
+      stubs.should_receive(:get).once.with("server2").and_return(nil)
+      server2.should_receive(:destroy).once
+      server2.should_not_receive(:stop)
 
       @worker.deprovision
       wi.fields['__error__'].should be_nil

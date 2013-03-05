@@ -373,12 +373,17 @@ module MaestroDev
       write_output("#{msg}\n")
     end
 
+    # deprovision vms
     def deprovision
       log_output("Starting #{provider} deprovision", :info)
 
-      ids = get_field("#{provider}_ids") || get_field("dns_names")
+      # if instance ids are explicitly set in the task
+      # ids can be an id or a name
+      ids = get_field("instance_ids")
+      # otherwise use the ids of instances started previously
+      ids = get_field("#{provider}_ids") if ids.nil? or ids.empty?
 
-      if ids.nil?
+      if ids.nil? or ids.empty?
         log_output("No servers found to be deprovisioned", :warn)
         return
       end
@@ -393,18 +398,18 @@ module MaestroDev
       end
 
       ids.each do |id|
-        log_output("Deprovisioning VM with id '#{id}'", :info)
+        log_output("Deprovisioning VM with id/name '#{id}'", :info)
         begin
-          s = connection.servers.get(id) || connection.servers.all.find{|server| server.name == id if server.respond_to?('name') }
+          s = connection.servers.get(id) || connection.servers.find{|server| server_name(server) == id }
 
           if s.nil?
-            log_output("VM with id '#{id}' not found, ignoring", :warn)
+            log_output("VM with id/name '#{id}' not found, ignoring", :warn)
           else
             s.destroy
           end
           delete_server_on_master(s)
         rescue Exception => e
-          log("Error destroying instance with id '#{id}'", e)
+          log("Error destroying instance with id/name '#{id}'", e)
         end
       end
 

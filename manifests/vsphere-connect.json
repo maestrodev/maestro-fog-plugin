@@ -1,0 +1,44 @@
+{
+  "task": {
+    "inputs": {
+      "host": {
+        "description": "vSphere host",
+        "required": true,
+        "type": "String",
+        "value": "localhost"
+      },
+      "username": {
+        "description": "vSphere username",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "password": {
+        "description": "vSphere password",
+        "required": true,
+        "type": "Password",
+        "value": null
+      },
+      "datacenter": {
+        "description": "Datacenter name",
+        "required": true,
+        "type": "String",
+        "value": null
+      }
+    }
+  },
+  "source_types": [
+    {
+      "name": "vsphere",
+      "options": {
+        "host": "String",
+        "username": "String",
+        "password": "Password",
+        "datacenter": "String",
+        "template_path": "String",
+        "destination_folder": "String",
+        "datastore": "String"
+      }
+    }
+  ]
+}

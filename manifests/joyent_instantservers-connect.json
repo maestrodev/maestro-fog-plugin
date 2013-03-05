@@ -1,0 +1,38 @@
+/* ************************************ Joyent: Instant Servers Madrid ************************************ */
+/* This file is a copy of joyent-connect with some specifics for InstantServers */
+{
+  "task": {
+    "inputs": {
+      "username": {
+        "required": true,
+        "type": "String",
+        "value": null,
+        "description": "user name"
+      },
+      "password": {
+        "required": true,
+        "type": "Password",
+        "value": null,
+        "description": "password"
+      },
+      "url": {
+        "required": true,
+        "type": "String",
+        "value": "https://api-mad.instantservers.es",
+        "description": "API endpoint"
+      }
+    }
+  },
+  "source_types": [
+    {
+      "name": "instant servers",
+      "options": {
+        "username": "String",
+        "password": "Password",
+        "url": "String",
+        "package": "String",
+        "dataset": "String"
+      }
+    }
+  ]
+}

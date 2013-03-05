@@ -1,86 +1,58 @@
 {
-  "name" : "AWS provision",
-  "description" : "Provision servers on Amazon Web Services EC2",
+  "name": "AWS provision",
+  "description": "Provision servers on Amazon Web Services EC2",
   "class": "MaestroDev::AwsWorker",
-  "task":{
-    "command" : "/aws/provision",
-    "inputs" : {
-      "access_key_id": {
-          "description": "AWS access key id", 
-          "required": true, 
-          "type": "String", 
-          "value": null
-      }, 
-      "secret_access_key": {
-          "description": "AWS secret access key",
-          "required": true, 
-          "type": "Password", 
-          "value": null
-      }, 
-      "region": {
-          "description": "AWS region identifier", 
-          "required": false, 
-          "type": "String", 
-          "value": "us-east-1"
-      }, 
+  "task": {
+    "command": "/aws/provision",
+    "inputs": {
       "availability_zone": {
-          "description": "AWS availability zone, ie. us-east-1a", 
-          "required": false, 
-          "type": "String", 
-          "value": null
-      }, 
+        "description": "AWS availability zone, ie. us-east-1a",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
       "image_id": {
-          "description": "ami id of the image to use",
-          "required": true, 
-          "type": "String", 
-          "value": "ami-1624987f"
-      }, 
+        "description": "ami id of the image to use",
+        "required": true,
+        "type": "String",
+        "value": "ami-1624987f"
+      },
       "flavor_id": {
-          "description": "Flavor id that defines ram, cpu,...",
-          "required": true, 
-          "type": "String", 
-          "value": "t1.micro"
-      }, 
+        "description": "Flavor id that defines ram, cpu,...",
+        "required": true,
+        "type": "String",
+        "value": "t1.micro"
+      },
       "key_name": {
-          "description": "AWS keypair name to use for the instance",
-          "required": false, 
-          "type": "String", 
-          "value": null
-      }, 
+        "description": "AWS keypair name to use for the instance",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
       "groups": {
-          "description": "the name of the security groups to add this VM to",
-          "required": false, 
-          "type": "Array", 
-          "value": []
+        "description": "the name of the security groups to add this VM to",
+        "required": false,
+        "type": "Array",
+        "value": []
       },
       "user_data": {
-          "description": "user data to set for the instance",
-          "required": false, 
-          "type": "String", 
-          "value": null
+        "description": "user data to set for the instance",
+        "required": false,
+        "type": "String",
+        "value": null
       }
     },
-    "outputs" : {
-      "aws_private_ips": {"type" : "Array"},
-      "aws_ips": {"type" : "Array"},
-      "aws_ids": {"type" : "Array"}
-    },
-    "icon":"aws.png"
-  },
-  "source_types": [
-    {
-      "name" : "aws",
-      "options" : {
-        "access_key_id": "String",
-        "secret_access_key": "Password",
-        "username": "String",
-        "region": "String",
-        "availability_zone": "String",
-        "image_id": "String",
-        "flavor_id": "String",
-        "key_name": "String",
-        // "groups": "Array", array sources not supported yet
-        "user_data": "String"
+    "outputs": {
+      "aws_private_ips": {
+        "type": "Array"
+      },
+      "aws_ips": {
+        "type": "Array"
+      },
+      "aws_ids": {
+        "type": "Array"
       }
-    }]
+    },
+    "icon": "aws.png"
+  }
 }

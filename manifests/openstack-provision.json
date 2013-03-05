@@ -1,75 +1,45 @@
 {
-  "name" : "openstack provision",
-  "description" : "Provision servers on an OpenStack cloud",
+  "name": "openstack provision",
+  "description": "Provision servers on an OpenStack cloud",
   "class": "MaestroDev::OpenstackWorker",
-  "task":{
-    "command" : "/openstack/provision",
-    "inputs" : {
-      "auth_url": {
-          "description": "the URL where the autentication service can be reached (eg http://hostname:35357/v2.0/tokens", 
-          "required": true, 
-          "type": "String", 
-          "value": null
-      }, 
-      "tenant": {
-          "description": "the OpenStack tenant (aka project)",
-          "required": true, 
-          "type": "String", 
-          "value": null
-      }, 
-      "username": {
-          "description": "username",
-          "required": true, 
-          "type": "String", 
-          "value": null
-      },
-      "api_key": {
-          "description": "API key",
-          "required": true, 
-          "type": "Password", 
-          "value": null
-      }, 
-      "region": {
-          "description": "region identifier, may be required for some providers", 
-          "required": false, 
-          "type": "String", 
-          "value": null
-      }, 
+  "task": {
+    "command": "/openstack/provision",
+    "inputs": {
       "image_id": {
-          "description": "id of the image to use",
-          "required": true, 
-          "type": "String", 
-          "value": null
-      }, 
+        "description": "id of the image to use",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
       "flavor_id": {
-          "description": "Flavor id that defines ram, cpu,...",
-          "required": true, 
-          "type": "String", 
-          "value": null
-      }, 
+        "description": "Flavor id that defines ram, cpu,...",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
       "key_name": {
-          "description": "the name of the ssh public key to copy to the server",
-          "required": false, 
-          "type": "String", 
-          "value": null
-      }, 
+        "description": "the name of the ssh public key to copy to the server",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
       "public_key": {
         "description": "public key content to copy to the server as authorized key",
-        "required": false, 
-        "type": "String", 
+        "required": false,
+        "type": "String",
         "value": null
       },
       "public_key_path": {
         "description": "path to public key to copy to the server as authorized key",
-        "required": false, 
-        "type": "String", 
+        "required": false,
+        "type": "String",
         "value": "/var/local/maestro-agent/.ssh/id_rsa.pub"
       },
       "security_group": {
-          "description": "the name of the security group to add this VM to",
-          "required": false, 
-          "type": "String", 
-          "value": null
+        "description": "the name of the security group to add this VM to",
+        "required": false,
+        "type": "String",
+        "value": null
       },
       "wait_for_public_ip": {
         "description": "set to true if plugin should look for a public ip address.",
@@ -78,26 +48,17 @@
         "value": true
       }
     },
-    "outputs" : {
-      "openstack_private_ips": {"type" : "Array"},
-      "openstack_ips": {"type" : "Array"},
-      "openstack_ids": {"type" : "Array"}
-    },
-    "icon":"openstack.png"
-  },
-  "source_types": [
-    {
-      "name" : "openstack",
-      "options" : {
-        "auth_url": "String",
-        "tenant": "String",
-        "username": "String",
-        "api_key": "Password",
-        "image_id": "String",
-        "flavor_id": "String",
-        "key_name": "String",
-        "public_key": "String",
-        "security_group": "String"
+    "outputs": {
+      "openstack_private_ips": {
+        "type": "Array"
+      },
+      "openstack_ips": {
+        "type": "Array"
+      },
+      "openstack_ids": {
+        "type": "Array"
       }
-    }]
+    },
+    "icon": "openstack.png"
+  }
 }

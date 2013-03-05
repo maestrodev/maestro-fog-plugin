@@ -1,0 +1,36 @@
+{
+  "task":{
+    "inputs" :  {
+      "username": {
+          "required": true, 
+          "type": "String", 
+          "value": null,
+          "description": "user name"
+      },
+      "password": {
+          "required": true, 
+          "type": "Password", 
+          "value": null,
+          "description": "password"
+      },
+      "url": {
+          "required": true, 
+          "type": "String", 
+          "value": "https://us-west-1.api.joyentcloud.com",
+          "description": "API endpoint"
+      }
+    }
+  },
+  "source_types": [
+    {
+      "name" : "joyent",
+      "options" : {
+        "username": "String",
+        "password": "Password",
+        "url": "String",
+        "package": "String",
+        "dataset": "String"
+      }
+    }
+  ]
+}
