@@ -96,7 +96,7 @@ module MaestroDev
         write_output("#{msg}... ")
 
         begin
-          s.wait_for { Maestro.log.debug("Checking if server '#{s.name}' #{s.id} has public ip") and !s.public_ip_address.nil? and !s.public_ip_address.empty? }
+          s.wait_for { !s.public_ip_address.nil? and !s.public_ip_address.empty? }
         rescue Fog::Errors::TimeoutError => e
           msg = "Server '#{s.name}' #{s.id} failed to get a public ip"
           Maestro.log.warn msg
