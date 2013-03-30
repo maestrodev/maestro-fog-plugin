@@ -63,6 +63,7 @@ module MaestroDev
           :public_key_path => public_key_path
         }
         s = connection.servers.create(attributes)
+        s.wait_for { ready? }
 
       rescue Fog::Errors::NotFound => e
         msg = "Image id '#{image_id}', flavor '#{flavor_id}' not found"
