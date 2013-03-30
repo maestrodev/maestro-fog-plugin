@@ -1,4 +1,4 @@
-source :rubygems
+source "https://rubygems.org"
 
 gem 'maestro_agent', '>= 1.5.0'
 
