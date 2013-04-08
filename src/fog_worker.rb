@@ -475,7 +475,7 @@ module MaestroDev
       server
     end
 
-    def get_server_by_id(id)
+    def get_server_by_id(connection, id)
       connection.servers.get(id)
     end
     
