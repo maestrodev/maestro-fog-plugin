@@ -458,6 +458,7 @@ module MaestroDev
     # Creates a new server
     def do_create_server(connection, options)
       server = connection.servers.create(options)
+      yeild(server) if block_given?
 
       populate_meta(server, 'new')
 
@@ -467,6 +468,7 @@ module MaestroDev
     # Clones an existing server
     def do_clone_server(connection, options)
       server = connection.vm_clone(options)
+      yeild(server) if block_given?
 
       populate_meta(server, 'clone')
 
