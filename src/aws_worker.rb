@@ -54,7 +54,7 @@ module MaestroDev
           :groups => get_field('groups'),
           :user_data => get_field('user_data')
         }
-        s = connection.servers.create(options)
+        s = do_create_server(connection, options)
       rescue Fog::Errors::NotFound => e
         msg = "Image id '#{image_id}', flavor '#{flavor_id}' not found"
         Maestro.log.error msg

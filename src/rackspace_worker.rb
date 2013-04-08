@@ -62,7 +62,7 @@ module MaestroDev
           :public_key => public_key,
           :public_key_path => public_key_path
         }
-        s = connection.servers.create(attributes)
+        s = do_create_server(connection, attributes)
         s.wait_for { ready? }
 
       rescue Fog::Errors::NotFound => e

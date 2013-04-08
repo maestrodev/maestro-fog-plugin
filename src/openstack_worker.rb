@@ -71,7 +71,7 @@ module MaestroDev
           :security_group => security_group,
           :tenant_id => tenant_id
         }
-        s = connection.servers.create(options)
+        s = do_create_server(connection, options)
       rescue Fog::Errors::NotFound => e
         msg = "Image id '#{image_id}', flavor '#{flavor_id}' not found"
         Maestro.log.error msg

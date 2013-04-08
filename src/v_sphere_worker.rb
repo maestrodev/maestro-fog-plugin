@@ -69,7 +69,7 @@ module MaestroDev
 
       begin
         # easier to do vm_clone than find the server and then clone
-        cloned = connection.vm_clone(options)
+        cloned = do_clone_server(connection, options)
       rescue ArgumentError, Fog::Errors::NotFound => e
         msg = "VM template '#{template_path}': #{e}"
         Maestro.log.error msg
@@ -88,7 +88,7 @@ module MaestroDev
         return
       end
 
-      s = connection.servers.get(id)
+      s = get_server_by_id(id)
       if s.nil?
         msg = "Failed to find newly cloned VM with id #{id} while cloning '#{template_path}' as '#{full_dest_path}'"
         Maestro.log.error msg

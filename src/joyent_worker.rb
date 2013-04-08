@@ -55,7 +55,7 @@ module MaestroDev
           :dataset => dataset,
           :name => name
         }
-        s = connection.servers.create(options)
+        s = do_create_server(connection, options)
       rescue Excon::Errors::Error => e
         error = JSON.parse e.response.body
         msg = "Error #{msg}: #{error['code']} #{error['message']}"

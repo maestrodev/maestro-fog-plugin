@@ -418,8 +418,8 @@ module MaestroDev
 
     # save the server data in the Maestro database
     def create_server_on_master(s)
-      image_id = s.respond_to?('image_id') ? s.image_id : 'no_image'
-      flavor_id = s.respond_to?('flavor_id') ? s.flavor_id : nil
+      image_id = server_image_id(s)   #s.respond_to?('image_id') ? s.image_id : 'no_image'
+      flavor_id = server_flavor_id(s) #s.respond_to?('flavor_id') ? s.flavor_id : nil
       create_record_with_fields("machine",
         ["name",         "type",   "instance_id", "public_ipv4",       "image_id", "flavor_id"],
         [server_name(s), provider, s.id,          s.public_ip_address, image_id  , flavor_id])
@@ -431,8 +431,72 @@ module MaestroDev
       #delete_record("machine", {"instance_id" => s.id, "type" => provider})
     end
 
+    # Get server name, or its id if name not supported
+    # Some servers will expose a name attribute, but will return id - its up to them whether they support a
+    # human readable name
     def server_name(s)
       (s.respond_to?('name') && s.name) ? s.name : s.id
+    end
+    
+    # Get the image used to create a server
+    def server_image_id(s)
+      s.respond_to?('image_id') ? s.image_id : 'no_image'
+    end
+    
+    # Get the flavor used to create a server.  Some providers support multiple flavors of an image,
+    # for example, image X may be base install, with a flavor 'with mysql' (just an example) that adds
+    # mysql to the base install
+    def server_flavor_id(s)
+      s.respond_to?('flavor_id') ? s.flavor_id : nil
+    end
+    
+    # Helper methods that can only be called within this class/subclass - not exposed to external entitles
+    # The main idea here is that we don't really want subclasses calling methods on the connection, by doing that
+    # they bypass our ability to report info & metrics'y stuff
+    private
+
+    # Creates a new server
+    def do_create_server(connection, options)
+      server = connection.servers.create(options)
+
+      populate_meta(server, 'new')
+
+      server
+    end
+
+    # Clones an existing server
+    def do_clone_server(connection, options)
+      server = connection.vm_clone(options)
+
+      populate_meta(server, 'clone')
+
+      server
+    end
+
+    def get_server_by_id(id)
+      connection.servers.get(id)
+    end
+    
+    def populate_meta(server, operation)
+      if operation
+        save_output_value('method', operation)
+      end
+
+      save_output_value('id', server.id)
+      save_output_value('name', server_name(server))
+      save_output_value('image', server_image_id(server))
+        
+      flavor = server_flavor_id(server)
+      
+      if flavor
+        save_output_value('flavor', flavor)
+      end
+      
+      ipv4 = s.public_ip_address
+      
+      if ipv4
+        save_output_value('ipv4', ipv4)
+      end
     end
   end
 end
