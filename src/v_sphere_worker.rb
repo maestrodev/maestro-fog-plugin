@@ -88,7 +88,7 @@ module MaestroDev
         return
       end
 
-      s = get_server_by_id(id)
+      s = get_server_by_id(connection, id)
       if s.nil?
         msg = "Failed to find newly cloned VM with id #{id} while cloning '#{template_path}' as '#{full_dest_path}'"
         Maestro.log.error msg
