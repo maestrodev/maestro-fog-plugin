@@ -110,7 +110,7 @@ module MaestroDev
 
       private_addr = private_address(s)
 
-      unless private_addr.empty?
+      if private_addr and !private_addr.empty?
         set_field("#{provider}_private_ips", (get_field("#{provider}_private_ips") || []) << private_addr)
         set_field("cloud_private_ips", (get_field("cloud_private_ips") || []) << private_addr)
       end
@@ -458,7 +458,7 @@ module MaestroDev
     # Creates a new server
     def do_create_server(connection, options)
       server = connection.servers.create(options)
-      yeild(server) if block_given?
+      yield(server) if block_given?
 
       populate_meta(server, 'new')
 
@@ -468,7 +468,7 @@ module MaestroDev
     # Clones an existing server
     def do_clone_server(connection, options)
       server = connection.vm_clone(options)
-      yeild(server) if block_given?
+      yield(server) if block_given?
 
       populate_meta(server, 'clone')
 

@@ -33,7 +33,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
       }
     end
 
-    it 'should provision a machine', :skip => true do
+    it 'should provision a machine' do
       wi = Ruote::Workitem.new({"fields" => @fields})
       @worker.stub(:workitem => wi.to_h)
       @worker.provision
@@ -55,7 +55,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
     #   wi.fields['__error__'].should eq("Image id '999999' flavor '1' not found")
     # end
 
-    it 'should provision a machine in europe', :skip => true do
+    it 'should provision a machine in europe' do
       wi = Ruote::Workitem.new({"fields" => @fields.merge({"auth_url" => @auth_url})})
       @worker.stub(:workitem => wi.to_h)
       @worker.provision
