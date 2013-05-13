@@ -151,7 +151,7 @@ You can find the image_id and flavor_id by adding a server from the Rackspace UI
 * **username**: Joyent username
 * **password**: Joyent password
 * **url**: API endpoint (ie. *https://us-west-1.api.joyentcloud.com*)
-* **package**: Describe the ‘sizes’ of either a smart machine or a virtual machine
+* **package**: Describe the sizes of either a smart machine or a virtual machine
 * **dataset**: The image of the software on your machine. It contains the software packages that will be available on newly provisioned machines. In the case of virtual machines, the dataset also includes the operating system
 
 # InstantServers

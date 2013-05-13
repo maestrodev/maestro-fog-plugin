@@ -11,7 +11,7 @@
         "required": false,
         "type": "String",
         "value": "g1_standard_1cpu_512mb",
-        "description": "Describe the ‘sizes’ of either a smart machine or a virtual machine"
+        "description": "Describe the sizes of either a smart machine or a virtual machine"
       },
       "dataset": {
         "required": true,

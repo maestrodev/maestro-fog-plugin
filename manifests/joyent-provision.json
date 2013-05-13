@@ -9,7 +9,7 @@
         "required": false,
         "type": "String",
         "value": null,
-        "description": "Describe the ‘sizes’ of either a smart machine or a virtual machine"
+        "description": "Describe the sizes of either a smart machine or a virtual machine"
       },
       "dataset": {
         "required": false,
