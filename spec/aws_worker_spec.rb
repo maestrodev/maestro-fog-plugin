@@ -44,7 +44,7 @@ describe MaestroDev::AwsWorker, :provider => "aws" do
       wi.fields['aws_secret_access_key'].should eq(@secret_access_key)
       wi.fields['aws_ids'].should_not be_empty
       wi.fields['aws_ids'].size.should be 1
-      wi.fields['__context_outputs__']['aws_servers'].length.should == 1
+      wi.fields['__context_outputs__']['servers'].length.should == 1
     end
 
     it 'should fail when image does not exist' do

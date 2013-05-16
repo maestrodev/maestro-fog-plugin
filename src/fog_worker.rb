@@ -15,6 +15,8 @@ end
 module MaestroDev
   class FogWorker < Maestro::MaestroWorker
 
+    SERVERS_CONTEXT_OUTPUT_KEY = 'servers'
+
     def log(message, exception)
       msg = "#{message}: #{exception.class} #{exception.message}\n#{exception.backtrace.join("\n")}"
       Maestro.log.error msg
@@ -383,9 +385,9 @@ module MaestroDev
       # otherwise use the ids of instances started previously
       if ids.empty?
         ids = []
-        servers = read_output_value("#{provider}_servers")
+        servers = read_output_value(SERVERS_CONTEXT_OUTPUT_KEY)
         unless servers.nil?
-          servers.each {|server| ids << server['id'] }
+          servers.each {|server| ids << server['id'] if server['provider'] == provider }
         end
       end
 
@@ -490,12 +492,12 @@ module MaestroDev
         save_output_value('method', operation)
       end
 
-      servers = read_output_value("#{provider}_servers") || []
-      server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) }
+      servers = read_output_value(SERVERS_CONTEXT_OUTPUT_KEY) || []
+      server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
       ipv4 = s.public_ip_address
       server_meta_data['ipv4'] = ipv4 if ipv4
       servers << server_meta_data
-      save_output_value("#{provider}_servers", servers)
+      save_output_value(SERVERS_CONTEXT_OUTPUT_KEY, servers)
 
     end
   end
