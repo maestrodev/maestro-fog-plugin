@@ -10,3 +10,11 @@ end
 Fog.mock!
 # reduce timeout for tests that force failure
 Fog.timeout = 3
+
+
+def context_outputs(provider, ids=[])
+  server_meta = []
+  ids.each { |id| server_meta << { 'id' => id } }
+
+  { "#{provider}_servers" => server_meta }
+end

@@ -44,6 +44,7 @@ describe MaestroDev::AwsWorker, :provider => "aws" do
       wi.fields['aws_secret_access_key'].should eq(@secret_access_key)
       wi.fields['aws_ids'].should_not be_empty
       wi.fields['aws_ids'].size.should be 1
+      wi.fields['__context_outputs__']['aws_servers'].length.should == 1
     end
 
     it 'should fail when image does not exist' do
@@ -73,23 +74,23 @@ describe MaestroDev::AwsWorker, :provider => "aws" do
 
     it 'should deprovision a machine' do
       # create 2 servers
-      stubs = {}
+      servers = {}
       (1..2).each do |i|
 
         s = @connection.servers.create(:image_id => @image_id,
-                                      :flavor_id => @flavor_id)
+                                       :flavor_id => @flavor_id)
         s.wait_for { ready? }
-        stubs[s.id]=s
+        servers[s.id]=s
       end
-      stubs.size.should == 2
+      servers.size.should == 2
 
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"aws_ids" => stubs.keys})})
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({'__context_outputs__' => context_outputs('aws', servers.keys)})})
       @worker.stub(:workitem => wi.to_h)
-      servers = double("servers")
-      @connection.stub(:servers => servers)
+      servers_stub = double("servers")
+      @connection.stub(:servers => servers_stub)
 
-      stubs.values.each do |s|
-        servers.should_receive(:get).once.with(s.id).and_return(s)
+      servers.values.each do |s|
+        servers_stub.should_receive(:get).once.with(s.id).and_return(s)
         s.ready?.should == true
         s.should_receive(:destroy).once
         s.should_not_receive(:stop)

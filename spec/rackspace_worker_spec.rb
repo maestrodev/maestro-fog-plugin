@@ -88,7 +88,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
         stubs[s.id]=s
       end
 
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"rackspace_ids" => stubs.keys})})
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({'__context_outputs__' => context_outputs('rackspace', stubs.keys)})})
       @worker.stub(:workitem => wi.to_h)
       @worker.stub(:connect => connection)
       servers = double("servers")

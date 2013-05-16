@@ -149,20 +149,22 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
   describe 'deprovision' do
 
     before(:each) do
+      @ids = ['5029c440-85ee-c2a1-e9dd-b63e39364603', '502916a3-b42e-17c7-43ce-b3206e9524dc']
       @fields = {
         "params" => {"command" => "deprovision"},
         "vsphere_host" => @host,
         "vsphere_username" => @username,
         "vsphere_password" => @password,
-        "vsphere_ids" => ["5029c440-85ee-c2a1-e9dd-b63e39364603", "502916a3-b42e-17c7-43ce-b3206e9524dc"],
+        "__context_outputs__" => context_outputs('vsphere', @ids),
       }
     end
 
     it 'should deprovision a machine' do
+
       wi = Ruote::Workitem.new({"fields" => @fields})
       @worker.stub(:workitem => wi.to_h, :connect => @connection)
 
-      stubs = @connection.servers.find_all {|s| @fields["vsphere_ids"].include?(s.id)}
+      stubs = @connection.servers.find_all {|s| @ids.include?(s.id)}
       stubs.size.should == 2
       servers = double("servers")
       @connection.stub(:servers => servers)
@@ -179,13 +181,13 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
     end
 
     it 'should stop machine before deprovisioning' do
-      id = "502916a3-b42e-17c7-43ce-b3206e9524dc"
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"vsphere_ids" => [id]})})
+      id = '502916a3-b42e-17c7-43ce-b3206e9524dc'
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({ '__context_outputs__' => context_outputs('vsphere', [ id ]) })})
       @worker.stub(:workitem => wi.to_h, :connect => @connection)
 
       stub = @connection.servers.find {|s| id == s.id}
       stub.should_not be_nil
-      servers = double("servers")
+      servers = double('servers')
       @connection.stub(:servers => servers)
 
       servers.should_receive(:get).with(id).and_return(stub)

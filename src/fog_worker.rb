@@ -379,11 +379,17 @@ module MaestroDev
 
       # if instance ids are explicitly set in the task
       # ids can be an id or a name
-      ids = get_field("instance_ids")
+      ids = get_field('instance_ids')  || []
       # otherwise use the ids of instances started previously
-      ids = get_field("#{provider}_ids") if ids.nil? or ids.empty?
+      if ids.empty?
+        ids = []
+        servers = read_output_value("#{provider}_servers")
+        unless servers.nil?
+          servers.each {|server| ids << server['id'] }
+        end
+      end
 
-      if ids.nil? or ids.empty?
+      if ids.empty?
         log_output("No servers found to be deprovisioned", :warn)
         return
       end
@@ -478,27 +484,19 @@ module MaestroDev
     def get_server_by_id(connection, id)
       connection.servers.get(id)
     end
-    
+
     def populate_meta(server, operation)
       if operation
         save_output_value('method', operation)
       end
 
-      save_output_value('id', server.id)
-      save_output_value('name', server_name(server))
-      save_output_value('image', server_image_id(server))
-        
-      flavor = server_flavor_id(server)
-      
-      if flavor
-        save_output_value('flavor', flavor)
-      end
-      
+      servers = read_output_value("#{provider}_servers") || []
+      server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) }
       ipv4 = s.public_ip_address
-      
-      if ipv4
-        save_output_value('ipv4', ipv4)
-      end
+      server_meta_data['ipv4'] = ipv4 if ipv4
+      servers << server_meta_data
+      save_output_value("#{provider}_servers", servers)
+
     end
   end
 end
