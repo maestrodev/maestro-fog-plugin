@@ -494,8 +494,8 @@ module MaestroDev
 
       # Cannot use 'read_output_value' without ensuring the value is already set, otherwise it will
       # return the value from the previous run, so we will have to hack it until the read_output_value
-      # method can take a "ignore_previous" type flag
-      my_context_outputs = get_field(CONTEXT_OUTPUTS_META) || {}
+      # method can take a "ignore_previous" type flag -- akk
+      my_context_outputs = get_field('__context_outputs__') || {}
       servers = my_context_outputs[SERVERS_CONTEXT_OUTPUT_KEY] || []
 
       server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
