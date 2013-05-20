@@ -381,15 +381,15 @@ module MaestroDev
 
       # if instance ids are explicitly set in the task
       # ids can be an id or a name
-      ids = get_field('instance_ids')  || []
+      ids = get_field("instance_ids")
       # otherwise use the ids of instances started previously
-      if ids.empty?
-        ids = []
-        servers = read_output_value(SERVERS_CONTEXT_OUTPUT_KEY)
-        unless servers.nil?
-          servers.each {|server| ids << server['id'] if server['provider'] == provider }
-        end
+      ids = get_field("#{provider}_ids") if ids.nil? or ids.empty?
+
+      if ids.nil? or ids.empty?
+        log_output("No servers found to be deprovisioned", :warn)
+        return
       end
+
 
       if ids.empty?
         log_output("No servers found to be deprovisioned", :warn)

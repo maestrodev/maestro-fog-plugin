@@ -335,7 +335,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       server1 = Fog::Compute::Server.new(:id => 1)
       server2 = Fog::Compute::Server.new(:id => 2)
       stubs = [server1, server2]
-      wi = Ruote::Workitem.new({'fields' => @fields.merge('__context_outputs__' => context_outputs('test', [1,2]))})
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"test_ids" => stubs.map { |s| s.id }})})
       @worker.stub(:workitem => wi.to_h)
       Fog::Compute.should_receive(:new).with({
         :provider=>"test",

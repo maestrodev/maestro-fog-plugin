@@ -74,23 +74,23 @@ describe MaestroDev::AwsWorker, :provider => "aws" do
 
     it 'should deprovision a machine' do
       # create 2 servers
-      servers = {}
+      stubs = {}
       (1..2).each do |i|
 
         s = @connection.servers.create(:image_id => @image_id,
                                        :flavor_id => @flavor_id)
         s.wait_for { ready? }
-        servers[s.id]=s
+        stubs[s.id]=s
       end
-      servers.size.should == 2
+      stubs.size.should == 2
 
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({'__context_outputs__' => context_outputs('aws', servers.keys)})})
+      wi = Ruote::Workitem.new({"fields" => @fields.merge({"aws_ids" => stubs.keys})})
       @worker.stub(:workitem => wi.to_h)
-      servers_stub = double("servers")
-      @connection.stub(:servers => servers_stub)
+      servers = double("servers")
+      @connection.stub(:servers => servers)
 
-      servers.values.each do |s|
-        servers_stub.should_receive(:get).once.with(s.id).and_return(s)
+      stubs.values.each do |s|
+        servers.should_receive(:get).once.with(s.id).and_return(s)
         s.ready?.should == true
         s.should_receive(:destroy).once
         s.should_not_receive(:stop)
