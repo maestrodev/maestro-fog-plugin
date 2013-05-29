@@ -19,6 +19,9 @@ end
 
 desc "Get dependencies with Bundler"
 task :bundle do
+  sh "bundle install --without development test" do |ok, res|
+    fail "Failed to run bundle install" unless ok
+  end
   sh "bundle package" do |ok, res|
     fail "Failed to run bundle package" unless ok
   end
@@ -49,7 +52,7 @@ task :package do
 end
 
 desc "Run a clean build"
-task :all => [:clean, :bundle, :spec, :package]
+task :all => [:clean, :spec, :bundle, :package]
 
 # Parse all partial manifests and merge them
 def merge_manifests(manifest, action)
