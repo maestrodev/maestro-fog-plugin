@@ -53,14 +53,14 @@ module MaestroDev
       })
     end
   
-    def find_zone(dns)
-      write_output("Searching For Zone #{get_field('dns_zone')}... ")
-      zone = dns.zones.all.find{|zone| zone.domain == get_field('dns_zone')}
+    def find_zone(dns, zone_name)
+      write_output("Searching For Zone #{zone_name}... ")
+      zone = dns.zones.all.find{|z| z.domain == zone_name}
       if(zone)
         write_output("Found")
       else
         write_output("Failed\n")
-        set_error("Failed To Find Zone #{get_field('dns_zone')}")
+        set_error("Failed To Find Zone #{zone_name}")
       end
       return zone
     end
@@ -68,7 +68,7 @@ module MaestroDev
     def create_record(dns, zone)
       write_output("\nCreating Record Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = #{get_field('dns_type')}...")
         record = zone.records.create(
-          :value   => get_field('dns_value'),
+          :value => get_field('dns_value'),
           :name => get_field('dns_name'),
           :type => get_field('dns_type')
         )          
@@ -87,14 +87,10 @@ module MaestroDev
     
     def modify_record(dns, zone)
       write_output("\nModifying Record Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = get_field('dns_type')...")
-        record = zone.records.all.find{|record| record.name == get_field('dns_name')}
+      record = zone.records.all.find{|record| record.name == get_field('dns_name')}
           
       if(record)
-        record_attributes = {
-          :value => get_field('dns_value')
-        }
-        record_attributes[:type] = get_field('dns_type')
-        record.modify(record_attributes)
+        record.modify({:value => get_field('dns_value'), :type => get_field('dns_type')})
         write_output(" Updated\n")
       else
         write_output(" Failed\n")
@@ -108,27 +104,15 @@ module MaestroDev
     end
     
     def create
-      begin
-        dns = connect_dns
-        
-        zone = find_zone(dns) if !error?
-        record = create_record(dns, zone) if !error?
-      rescue StandardError => e
-        set_error("Failed To Create Record Zone = #{get_field('dns_zone')} Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = #{get_field('dns_type')} " + e)
-        puts e, e.backtrace.join("\n")
-      end        
+      dns = connect_dns
+      zone = find_zone(dns, get_field('dns_zone')) if !error?
+      record = create_record(dns, zone) if !error?
     end
     
     def modify
-      begin
-        dns = connect_dns
-        
-        zone = find_zone(dns) if !error?
-        record = modify_record(dns, zone) if !error?
-      rescue StandardError => e
-        set_error("Failed To Modify Record Zone = #{get_field('dns_zone')} Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = get_field('dns_type') " + e)
-        puts e, e.backtrace.join("\n")
-      end 
+      dns = connect_dns
+      zone = find_zone(dns, get_field('dns_zone')) if !error?
+      record = modify_record(dns, zone) if !error?
     end
     
   end

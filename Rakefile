@@ -19,12 +19,8 @@ end
 
 desc "Get dependencies with Bundler"
 task :bundle do
-  sh "bundle install --without development test" do |ok, res|
-    fail "Failed to run bundle install" unless ok
-  end
-  sh "bundle package" do |ok, res|
-    fail "Failed to run bundle package" unless ok
-  end
+  sh "bundle install --without development test"
+  sh "bundle package"
 end
 
 desc "Package plugin zip"
@@ -46,9 +42,7 @@ task :package do
   manifest.each { |m| m['version'] = "#{version}-#{commit}" }
   File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
   
-  sh "zip -r #{artifactId}-#{version}.zip src vendor images LICENSE README.md manifest.json" do |ok, res|
-    fail "Failed to create zip file" unless ok
-  end
+  sh "zip -r #{artifactId}-#{version}.zip src vendor images LICENSE README.md manifest.json"
 end
 
 desc "Run a clean build"
