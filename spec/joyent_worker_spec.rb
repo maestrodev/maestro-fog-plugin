@@ -14,8 +14,7 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
   end
 
   before(:each) do
-    @worker = MaestroDev::JoyentWorker.new
-    @worker.stub(:send_workitem_message)
+    subject.stub(:send_workitem_message)
     @username = "maestrodev"
     @password = "xxx"
     @url = "https://api-mad.instantservers.es"
@@ -35,24 +34,21 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
     end
 
     it 'should provision a machine' do
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.provision
+      subject.stub(:workitem => {"fields" => @fields})
+      subject.provision
 
-      wi.fields['__error__'].should be nil
-      wi.fields['joyent_username'].should eq(@username)
-      wi.fields['joyent_password'].should eq(@password)
-      wi.fields['joyent_url'].should eq(@url)
-      wi.fields['joyent_ids'].should_not be_empty
-      wi.fields['joyent_ids'].size.should be 1
+      subject.error.should be_nil
+      subject.get_field('joyent_username').should eq(@username)
+      subject.get_field('joyent_password').should eq(@password)
+      subject.get_field('joyent_url').should eq(@url)
+      subject.get_field('joyent_ids').should_not be_empty
+      subject.get_field('joyent_ids').size.should be 1
     end
 
     it 'should fail when image does not exist' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"dataset" => "qqqqqq"})})
-    
-      @worker.stub(:workitem => wi.to_h)
-      @worker.provision
-      wi.fields['__error__'].should_not be_empty
+      subject.stub(:workitem => {"fields" => @fields.merge({"dataset" => "qqqqqq"})})
+      subject.provision
+      subject.error.should_not be_empty
     end
 
   end
@@ -81,9 +77,8 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
         stubs[s.id]=s
       end
 
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"joyent_ids" => stubs.keys})})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.stub(:connect => connection)
+      subject.stub(:workitem => {"fields" => @fields.merge({"joyent_ids" => stubs.keys})})
+      subject.stub(:connect => connection)
       servers = double("servers")
       connection.stub(:servers => servers)
 
@@ -94,8 +89,8 @@ describe MaestroDev::JoyentWorker, :provider => "joyent", :skip => true do
         s.should_not_receive(:stop)
       end
 
-      @worker.deprovision
-      wi.fields['__error__'].should be_nil
+      subject.deprovision
+      subject.error.should be_nil
     end
 
   end

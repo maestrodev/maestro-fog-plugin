@@ -20,8 +20,7 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
   end
 
   before(:each) do
-    @worker = MaestroDev::OpenstackWorker.new
-    @worker.stub(:send_workitem_message)
+    subject.stub(:send_workitem_message)
     @api_key = "myapi"
     @username = "johndoe"
     @image_id = "abc-123-456-789"
@@ -51,38 +50,35 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
     end
 
     it 'should provision a machine', :skip => true do
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.provision
+      subject.stub(:workitem => {"fields" => @fields})
+      subject.provision
 
-      wi.fields['__error__'].should be nil
-      wi.fields['openstack_api_key'].should eq(@api_key)
-      wi.fields['openstack_username'].should eq(@username)
-      wi.fields['openstack_auth_url'].should eq(@auth_url)
-      wi.fields['openstack_tenant'].should eq(@tenant)
-      wi.fields['openstack_ids'].should_not be_empty
-      wi.fields['openstack_ids'].size.should be 1
+      subject.error.should be_nil
+      subject.get_field('openstack_api_key').should eq(@api_key)
+      subject.get_field('openstack_username').should eq(@username)
+      subject.get_field('openstack_auth_url').should eq(@auth_url)
+      subject.get_field('openstack_tenant').should eq(@tenant)
+      subject.get_field('openstack_ids').should_not be_empty
+      subject.get_field('openstack_ids').size.should be 1
     end
 
     # can't test it with mock
     # it 'should fail when image does not exist', :skip => true do
-    #   wi = Ruote::Workitem.new({"fields" => @fields.merge({"image_id" => 999999})})
     #
-    #   @worker.stub(:workitem => wi.to_h)
-    #   @worker.provision
-    #   wi.fields['__error__'].should eq("Image id '999999' flavor '1' not found")
+    #   subject.stub(:workitem => {"fields" => @fields.merge({"image_id" => 999999})})
+    #   subject.provision
+    #   subject.error.should eq("Image id '999999' flavor '1' not found")
     # end
 
     it 'should provision a machine in a different endpoint', :skip => true do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"auth_url" => @auth_url})})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.provision
+      subject.stub(:workitem => {"fields" => @fields.merge({"auth_url" => @auth_url})})
+      subject.provision
 
-      wi.fields['__error__'].should be nil
-      wi.fields['openstack_api_key'].should eq(@api_key)
-      wi.fields['openstack_username'].should eq(@username)
-      wi.fields['openstack_auth_url'].should eq(@auth_url)
-      wi.fields['openstack_tenant'].should eq(@tenant)
+      subject.error.should be_nil
+      subject.get_field('openstack_api_key').should eq(@api_key)
+      subject.get_field('openstack_username').should eq(@username)
+      subject.get_field('openstack_auth_url').should eq(@auth_url)
+      subject.get_field('openstack_tenant').should eq(@tenant)
     end
   end
 
@@ -111,9 +107,8 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
         stubs[s.id]=s
       end
 
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"openstack_ids" => stubs.keys})})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.stub(:connect => connection)
+      subject.stub(:workitem => {"fields" => @fields.merge({"openstack_ids" => stubs.keys})})
+      subject.stub(:connect => connection)
       servers = double("servers")
       connection.stub(:servers => servers)
 
@@ -124,8 +119,8 @@ describe MaestroDev::OpenstackWorker, :provider => "openstack" do
         s.should_not_receive(:stop)
       end
 
-      @worker.deprovision
-      wi.fields['__error__'].should eq(nil)
+      subject.deprovision
+      subject.error.should be_nil
     end
 
   end

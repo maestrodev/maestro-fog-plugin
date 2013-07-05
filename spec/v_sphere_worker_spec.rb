@@ -57,8 +57,7 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
   end
 
   before(:each) do
-    @worker = MaestroDev::VSphereWorker.new
-    @worker.stub(:send_workitem_message)
+    subject.stub(:send_workitem_message)
 
     # mock
     @host = "localhost"
@@ -98,7 +97,6 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
     end
 
     it 'should provision a machine' do
-      wi = Ruote::Workitem.new({"fields" => @fields})
 
       # Fog.Mock is not complete
       @connection.should_receive(:vm_clone).with({
@@ -114,24 +112,22 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
         'task_ref' => 'task-1234',
       })
 
-      @worker.stub(:workitem => wi.to_h, :connect => @connection)
-      @worker.provision
+      subject.stub(:workitem => {"fields" => @fields}, :connect => @connection)
+      subject.provision
 
-      wi.fields['__error__'].should eq(nil)
-      wi.fields['vsphere_ids'].should eq(["5032c8a5-9c5e-ba7a-3804-832a03e16381"])
+      subject.error.should be_nil
+      subject.get_field('vsphere_ids').should eq(["5032c8a5-9c5e-ba7a-3804-832a03e16381"])
     end
 
     it 'should fail when template does not exist' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_path" => "doesnotexist"})})
 
-      @worker.stub(:workitem => wi.to_h, :connect => @connection)
-      @worker.provision
-      wi.fields['__error__'].should eq("VM template 'doesnotexist': Could not find VM template")
+      subject.stub(:workitem => {"fields" => @fields.merge({"template_path" => "doesnotexist"})}, :connect => @connection)
+      subject.provision
+      subject.error.should eq("VM template 'doesnotexist': Could not find VM template")
     end
 
     it 'should print an error if template fails to clone' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"template_path" => "another"})})
-      @worker.stub(:workitem => wi.to_h, :connect => @connection)
+      subject.stub(:workitem => {"fields" => @fields.merge({"template_path" => "another"})}, :connect => @connection)
       @connection.should_receive(:vm_clone).with({
         "datacenter" => @datacenter,
         "name" => "xxx",
@@ -140,9 +136,9 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
         "poweron" => true,
         "wait" => false
       }).and_raise(RbVmomi::Fault.new("message", "fault"))
-      @worker.provision
+      subject.provision
 
-      wi.fields['__error__'].should match(%r[^Error cloning template 'another' as 'newfolder/xxx'.*message\n])
+      subject.error.should match(%r[^Error cloning template 'another' as 'newfolder/xxx'.*message\n])
     end
   end
 
@@ -162,8 +158,7 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
 
     it 'should deprovision a machine' do
 
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h, :connect => @connection)
+      subject.stub(:workitem => {"fields" => @fields}, :connect => @connection)
 
       stubs = @connection.servers.find_all {|s| @fields["vsphere_ids"].include?(s.id)}
       stubs.size.should == 2
@@ -177,14 +172,13 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
         s.should_receive(:destroy).once
       end
 
-      @worker.deprovision
-      wi.fields['__error__'].should eq(nil)
+      subject.deprovision
+      subject.error.should be_nil
     end
 
     it 'should stop machine before deprovisioning' do
       id = '502916a3-b42e-17c7-43ce-b3206e9524dc'
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"vsphere_ids" => [id]})})
-      @worker.stub(:workitem => wi.to_h, :connect => @connection)
+      subject.stub(:workitem => {"fields" => @fields.merge({"vsphere_ids" => [id]})}, :connect => @connection)
 
       stub = @connection.servers.find {|s| id == s.id}
       stub.should_not be_nil
@@ -195,8 +189,8 @@ describe MaestroDev::VSphereWorker, :provider => "vsphere" do
       stub.ready?.should be_true
       stub.should_receive(:destroy).once
 
-      @worker.deprovision
-      wi.fields['__error__'].should eq(nil)
+      subject.deprovision
+      subject.error.should be_nil
     end
   end
 end

@@ -21,9 +21,9 @@ describe MaestroDev::FogWorker, :provider => "test" do
     end
   end
 
-  before(:each) do
-    @worker = TestWorker.new
+  subject { TestWorker.new }
 
+  before(:each) do
     @hostname = "myhostname"
     @username = "myusername"
     @password = "mypassword"
@@ -55,8 +55,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
 
   describe 'provision' do
 
-    before(:each) do
-      @fields = {
+    let(:fields) {{
         "name" => "test",
         "hostname" => @hostname,
         "username" => @username,
@@ -65,58 +64,54 @@ describe MaestroDev::FogWorker, :provider => "test" do
         "ssh_user" => @ssh_user,
         "ssh_commands" => ["hostname"],
         "private_key" => @private_key
-      }
-    end
+    }}
 
     it 'should provision a server' do
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
-      @worker.should_receive(:create_server).with(connection, "test").and_return(mock_server)
-      @worker.provision
+      subject.should_receive(:create_server).with(connection, "test").and_return(mock_server)
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1])
-      wi.fields['test_ids'].should eq([1])
-      wi.fields['cloud_ips'].should eq(["192.168.1.1"])
-      wi.fields['test_ips'].should eq(["192.168.1.1"])
-      wi.fields['cloud_names'].should eq(["test"])
-      wi.fields['test_names'].should eq(["test"])
-      wi.fields['test_hostname'].should eq("myhostname")
-      wi.fields['test_username'].should eq("myusername")
-      wi.fields['test_password'].should eq("mypassword")
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1])
+      subject.get_field('test_ids').should eq([1])
+      subject.get_field('cloud_ips').should eq(["192.168.1.1"])
+      subject.get_field('test_ips').should eq(["192.168.1.1"])
+      subject.get_field('cloud_names').should eq(["test"])
+      subject.get_field('test_names').should eq(["test"])
+      subject.get_field('test_hostname').should eq("myhostname")
+      subject.get_field('test_username').should eq("myusername")
+      subject.get_field('test_password').should eq("mypassword")
     end
 
     it 'should provision several servers' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 3})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"number_of_vms" => 3})})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
       server1 = mock_server(1, "test 1")
       server2 = mock_server(2, "test 2")
       server3 = mock_server(3, "test 3")
-      @worker.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(server1, server2, server3)
-      @worker.provision
+      subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(server1, server2, server3)
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1, 2, 3])
-      wi.fields['test_ids'].should eq([1, 2, 3])
-      wi.fields['cloud_ips'].should eq(["192.168.1.1", "192.168.1.2", "192.168.1.3"])
-      wi.fields['test_ips'].should eq(["192.168.1.1", "192.168.1.2", "192.168.1.3"])
-      wi.fields['cloud_names'].should eq(["test 1", "test 2", "test 3"])
-      wi.fields['test_names'].should eq(["test 1", "test 2", "test 3"])
-      wi.fields['test_hostname'].should eq("myhostname")
-      wi.fields['test_username'].should eq("myusername")
-      wi.fields['test_password'].should eq("mypassword")
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1, 2, 3])
+      subject.get_field('test_ids').should eq([1, 2, 3])
+      subject.get_field('cloud_ips').should eq(["192.168.1.1", "192.168.1.2", "192.168.1.3"])
+      subject.get_field('test_ips').should eq(["192.168.1.1", "192.168.1.2", "192.168.1.3"])
+      subject.get_field('cloud_names').should eq(["test 1", "test 2", "test 3"])
+      subject.get_field('test_names').should eq(["test 1", "test 2", "test 3"])
+      subject.get_field('test_hostname').should eq("myhostname")
+      subject.get_field('test_username').should eq("myusername")
+      subject.get_field('test_password').should eq("mypassword")
     end
 
     # in Rackspace v2 cloud servers may be ready but not have a public ip yet
     it 'should wait for public ip' do
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
@@ -125,60 +120,56 @@ describe MaestroDev::FogWorker, :provider => "test" do
       ip = '192.168.1.1'
       server.should_receive(:ssh).once.and_return([ssh_result])
       server.stub(:public_ip_address).and_return(nil, nil, ip)
-      @worker.stub(:create_server => server)
-      @worker.provision
+      subject.stub(:create_server => server)
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1])
-      wi.fields['test_ids'].should eq([1])
-      wi.fields['cloud_ips'].should eq(["192.168.1.1"])
-      wi.fields['test_ips'].should eq(["192.168.1.1"])
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1])
+      subject.get_field('test_ids').should eq([1])
+      subject.get_field('cloud_ips').should eq(["192.168.1.1"])
+      subject.get_field('test_ips').should eq(["192.168.1.1"])
     end
 
     # in mCloud, servers don't have a public ip assigned automatically.
     it 'should not wait for public ip if not told to' do
-      fields = @fields.clone
       fields['wait_for_public_ip'] = false
       fields.delete('ssh_commands')
-      wi = Ruote::Workitem.new({"fields" => fields})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
       server = mock_server_basic(1, "test")
       server.stub("ready?").and_return(true)
       server.stub(:public_ip_address).and_return(nil)
-      @worker.stub(:create_server => server)
-      @worker.provision
+      subject.stub(:create_server => server)
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1])
-      wi.fields['test_ids'].should eq([1])
-      wi.fields['cloud_ips'].should be_nil
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1])
+      subject.get_field('test_ids').should eq([1])
+      subject.get_field('cloud_ips').should be_nil
     end
 
     it 'should fail if server does not have public ip' do
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
       server = mock_server_basic(1, "test")
       server.stub("ready?").and_return(true)
       server.stub(:public_ip_address).and_return(nil)
-      @worker.stub(:create_server => server)
-      @worker.provision
+      subject.stub(:create_server => server)
+      subject.provision
 
-      wi.fields['__error__'].should eq("All servers failed to provision")
-      wi.fields['cloud_ids'].should eq([1])
-      wi.fields['test_ids'].should eq([1])
-      wi.fields['cloud_ips'].should be_nil
-      wi.fields['test_ips'].should be_nil
+      subject.error.should eq("All servers failed to provision")
+      subject.get_field('cloud_ids').should eq([1])
+      subject.get_field('test_ids').should eq([1])
+      subject.get_field('cloud_ips').should be_nil
+      subject.get_field('test_ips').should be_nil
     end
 
     it 'should not fail if some servers fail to start' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 2})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"number_of_vms" => 2})})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
@@ -186,24 +177,23 @@ describe MaestroDev::FogWorker, :provider => "test" do
       server1.stub("ready?").and_return(true)
       server1.stub(:public_ip_address).and_return(nil)
       server2 = mock_server(2, "test 2")
-      @worker.should_receive(:create_server).and_return(server1, server2)
-      @worker.provision
+      subject.should_receive(:create_server).and_return(server1, server2)
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1,2])
-      wi.fields['test_ids'].should eq([1,2])
-      wi.fields['cloud_ips'].should eq(["192.168.1.2"])
-      wi.fields['test_ips'].should eq(["192.168.1.2"])
-      wi.fields['cloud_names'].should eq(["test 2"])
-      wi.fields['test_names'].should eq(["test 2"])
-      wi.fields['test_hostname'].should eq("myhostname")
-      wi.fields['test_username'].should eq("myusername")
-      wi.fields['test_password'].should eq("mypassword")
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1,2])
+      subject.get_field('test_ids').should eq([1,2])
+      subject.get_field('cloud_ips').should eq(["192.168.1.2"])
+      subject.get_field('test_ips').should eq(["192.168.1.2"])
+      subject.get_field('cloud_names').should eq(["test 2"])
+      subject.get_field('test_names').should eq(["test 2"])
+      subject.get_field('test_hostname').should eq("myhostname")
+      subject.get_field('test_username').should eq("myusername")
+      subject.get_field('test_password').should eq("mypassword")
     end
 
     it 'should not fail if some servers fail to provision' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 2})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"number_of_vms" => 2})})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
@@ -213,19 +203,18 @@ describe MaestroDev::FogWorker, :provider => "test" do
       failed_ssh = ssh_result
       failed_ssh.status=1
       server2.should_receive(:ssh).once.and_return([failed_ssh])
-      @worker.should_receive(:create_server).and_return(server1, server2)
-      @worker.provision
+      subject.should_receive(:create_server).and_return(server1, server2)
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1,2])
-      wi.fields['test_ids'].should eq([1,2])
-      wi.fields['cloud_ips'].should eq(["192.168.1.1", "192.168.1.2"])
-      wi.fields['test_ips'].should eq(["192.168.1.1", "192.168.1.2"])
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1,2])
+      subject.get_field('test_ids').should eq([1,2])
+      subject.get_field('cloud_ips').should eq(["192.168.1.1", "192.168.1.2"])
+      subject.get_field('test_ips').should eq(["192.168.1.1", "192.168.1.2"])
     end
 
     it 'should fail if all servers fail to provision' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 2})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"number_of_vms" => 2})})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
@@ -237,90 +226,84 @@ describe MaestroDev::FogWorker, :provider => "test" do
       failed_ssh.status=1
       server1.should_receive(:ssh).once.and_return([failed_ssh])
       server2.should_receive(:ssh).once.and_return([failed_ssh])
-      @worker.should_receive(:create_server).and_return(server1, server2)
-      @worker.provision
+      subject.should_receive(:create_server).and_return(server1, server2)
+      subject.provision
 
-      wi.fields['__error__'].should eq("All servers failed to provision")
-      wi.fields['cloud_ids'].should eq([1,2])
-      wi.fields['test_ids'].should eq([1,2])
-      wi.fields['cloud_ips'].should eq(["192.168.1.1", "192.168.1.2"])
-      wi.fields['test_ips'].should eq(["192.168.1.1", "192.168.1.2"])
+      subject.error.should eq("All servers failed to provision")
+      subject.get_field('cloud_ids').should eq([1,2])
+      subject.get_field('test_ids').should eq([1,2])
+      subject.get_field('cloud_ips').should eq(["192.168.1.1", "192.168.1.2"])
+      subject.get_field('test_ips').should eq(["192.168.1.1", "192.168.1.2"])
     end
 
     it 'should provision a machine with a random name when name is not provided' do
-      wi = Ruote::Workitem.new({"fields" => @fields.reject!{ |k, v| k == 'name' }})
       connection = double("connection", :servers => [])
-      @worker.stub({:workitem => wi.to_h, :connect => connection})
-      @worker.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(mock_server)
-      @worker.provision
-      @worker.error.should be_nil
+      subject.stub({:workitem => {"fields" => fields.reject!{ |k, v| k == 'name' }}, :connect => connection})
+      subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(mock_server)
+      subject.provision
+      subject.error.should be_nil
     end
 
     it 'should provision more than one server when name is not provided' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"name" => nil, "number_of_vms" => 3})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"name" => nil, "number_of_vms" => 3})})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
-      @worker.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(
+      subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(
         mock_server(1), mock_server(2), mock_server(3))
-      @worker.provision
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1,2,3])
-      wi.fields['test_ids'].should eq([1,2,3])
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1,2,3])
+      subject.get_field('test_ids').should eq([1,2,3])
     end
 
     it 'should provision more than one server with random names when name is provided' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"number_of_vms" => 3})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"number_of_vms" => 3})})
 
       connection = double("connection", :servers => [])
       Fog::Compute.stub(:new => connection)
-      @worker.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(
+      subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(
         mock_server(1), mock_server(2), mock_server(3))
-      @worker.provision
+      subject.provision
 
-      wi.fields['__error__'].should be_nil
-      wi.fields['cloud_ids'].should eq([1,2,3])
-      wi.fields['test_ids'].should eq([1,2,3])
+      subject.error.should be_nil
+      subject.get_field('cloud_ids').should eq([1,2,3])
+      subject.get_field('test_ids').should eq([1,2,3])
     end
 
     it 'should fail if ssh is not properly configured' do
-      wi = Ruote::Workitem.new({"fields" => @fields.reject {|k,v| k=="private_key"}})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.reject {|k,v| k=="private_key"}})
       Fog::Compute.stub(:new => double("connection"))
-      @worker.provision
+      subject.provision
 
-      wi.fields['__error__'].should eq("private_key, private_key_path or ssh_password are required for SSH")
-      wi.fields['cloud_ids'].should be_nil
-      wi.fields['test_ids'].should be_nil
+      subject.error.should eq("private_key, private_key_path or ssh_password are required for SSH")
+      subject.get_field('cloud_ids').should be_nil
+      subject.get_field('test_ids').should be_nil
     end
 
     it 'should fail early if ssh key file does not exist' do
-      wi = Ruote::Workitem.new({"fields" => @fields.reject {|k,v| k=="private_key"}.merge({"private_key_path" => "/blabla"})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.reject {|k,v| k=="private_key"}.merge({"private_key_path" => "/blabla"})})
       Fog::Compute.stub(:new => double("connection"))
-      @worker.provision
+      subject.provision
 
-      wi.fields['__error__'].should eq("private_key_path does not exist: /blabla")
-      wi.fields['cloud_ids'].should be_nil
-      wi.fields['test_ids'].should be_nil
+      subject.error.should eq("private_key_path does not exist: /blabla")
+      subject.get_field('cloud_ids').should be_nil
+      subject.get_field('test_ids').should be_nil
     end
 
     it 'should generate a random name' do
-      @worker.random_name.should match(/^maestro-[a-z]{5}$/)
-      @worker.random_name("test").should match(/^test-[a-z]{5}$/)
+      subject.random_name.should match(/^maestro-[a-z]{5}$/)
+      subject.random_name("test").should match(/^test-[a-z]{5}$/)
       s = "test.acme.com"
-      @worker.random_name(s).should match(/^test-[a-z]{5}\.acme\.com$/)
-      @worker.random_name(s).should match(/^test-[a-z]{5}\.acme\.com$/)
+      subject.random_name(s).should match(/^test-[a-z]{5}\.acme\.com$/)
+      subject.random_name(s).should match(/^test-[a-z]{5}\.acme\.com$/)
     end
   end
 
   describe 'deprovision' do
 
-    before(:each) do
-      @fields = {
+    let(:fields) {{
         "params" => {"command" => "deprovision"},
         "username" => "do not use",
         "hostname" => "do not use",
@@ -328,15 +311,13 @@ describe MaestroDev::FogWorker, :provider => "test" do
         "test_username" => @username,
         "test_hostname" => @hostname,
         "test_password" => @password
-      }
-    end
+    }}
 
     it 'should destroy started servers' do
       server1 = Fog::Compute::Server.new(:id => 1)
       server2 = Fog::Compute::Server.new(:id => 2)
       stubs = [server1, server2]
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"test_ids" => stubs.map { |s| s.id }})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"test_ids" => stubs.map { |s| s.id }})})
       Fog::Compute.should_receive(:new).with({
         :provider=>"test",
         :test_hostname=>"myhostname",
@@ -350,8 +331,8 @@ describe MaestroDev::FogWorker, :provider => "test" do
         s.should_not_receive(:stop)
       end
 
-      @worker.deprovision
-      wi.fields['__error__'].should be_nil
+      subject.deprovision
+      subject.error.should be_nil
     end
 
     it 'should destroy servers by id or name' do
@@ -360,8 +341,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
       server2 = Fog::Compute::Server.new(:id => 2)
       server2.stub(:name => "server2")
       stubs = [server1, server2]
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"instance_ids" => ["1", "server2"]})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"instance_ids" => ["1", "server2"]})})
       Fog::Compute.should_receive(:new).with({
         :provider=>"test",
         :test_hostname=>"myhostname",
@@ -376,16 +356,15 @@ describe MaestroDev::FogWorker, :provider => "test" do
       server2.should_receive(:destroy).once
       server2.should_not_receive(:stop)
 
-      @worker.deprovision
-      wi.fields['__error__'].should be_nil
+      subject.deprovision
+      subject.error.should be_nil
     end
 
     it 'should not fail if no servers were started' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"rackspace_ids" => []})})
-      @worker.stub(:workitem => wi.to_h)
+      subject.stub(:workitem => {"fields" => fields.merge({"rackspace_ids" => []})})
 
-      @worker.deprovision
-      wi.fields['__error__'].should be_nil
+      subject.deprovision
+      subject.error.should be_nil
     end
 
   end

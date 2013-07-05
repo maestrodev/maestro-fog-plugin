@@ -13,8 +13,7 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
   end
 
   before(:each) do
-    @worker = MaestroDev::RackspaceWorker.new
-    @worker.stub(:send_workitem_message)
+    subject.stub(:send_workitem_message)
 
     @api_key = "myapi"
     @username = "johndoe"
@@ -34,36 +33,33 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
     end
 
     it 'should provision a machine' do
-      wi = Ruote::Workitem.new({"fields" => @fields})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.provision
+      subject.stub(:workitem => {"fields" => @fields})
+      subject.provision
 
-      wi.fields['__error__'].should be nil
-      wi.fields['rackspace_api_key'].should eq(@api_key)
-      wi.fields['rackspace_username'].should eq(@username)
-      wi.fields['rackspace_auth_url'].should be nil
-      wi.fields['rackspace_ids'].should_not be_empty
-      wi.fields['rackspace_ids'].size.should be 1
+      subject.error.should be_nil
+      subject.get_field('rackspace_api_key').should eq(@api_key)
+      subject.get_field('rackspace_username').should eq(@username)
+      subject.get_field('rackspace_auth_url').should be_nil
+      subject.get_field('rackspace_ids').should_not be_empty
+      subject.get_field('rackspace_ids').size.should be 1
     end
 
     # can't test it with mock
     # it 'should fail when image does not exist', :skip => true do
-    #   wi = Ruote::Workitem.new({"fields" => @fields.merge({"image_id" => "999999"})})
     #
-    #   @worker.stub(:workitem => wi.to_h)
-    #   @worker.provision
-    #   wi.fields['__error__'].should eq("Image id '999999' flavor '1' not found")
+    #   subject.stub(:workitem => {"fields" => @fields.merge({"image_id" => "999999"})})
+    #   subject.provision
+    #   subject.error.should eq("Image id '999999' flavor '1' not found")
     # end
 
     it 'should provision a machine in europe' do
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"auth_url" => @auth_url})})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.provision
+      subject.stub(:workitem => {"fields" => @fields.merge({"auth_url" => @auth_url})})
+      subject.provision
 
-      wi.fields['__error__'].should be nil
-      wi.fields['rackspace_api_key'].should eq(@api_key)
-      wi.fields['rackspace_username'].should eq(@username)
-      wi.fields['rackspace_auth_url'].should eq(@auth_url)
+      subject.error.should be_nil
+      subject.get_field('rackspace_api_key').should eq(@api_key)
+      subject.get_field('rackspace_username').should eq(@username)
+      subject.get_field('rackspace_auth_url').should eq(@auth_url)
     end
   end
 
@@ -88,9 +84,8 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
         stubs[s.id]=s
       end
 
-      wi = Ruote::Workitem.new({"fields" => @fields.merge({"rackspace_ids" => stubs.keys})})
-      @worker.stub(:workitem => wi.to_h)
-      @worker.stub(:connect => connection)
+      subject.stub(:workitem => {"fields" => @fields.merge({"rackspace_ids" => stubs.keys})})
+      subject.stub(:connect => connection)
       servers = double("servers")
       connection.stub(:servers => servers)
 
@@ -101,8 +96,8 @@ describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
         s.should_not_receive(:stop)
       end
 
-      @worker.deprovision
-      wi.fields['__error__'].should eq(nil)
+      subject.deprovision
+      subject.error.should be_nil
     end
 
   end
