@@ -304,6 +304,7 @@ module MaestroDev
         end
         next if s.nil?
 
+        populate_meta(s, 'new')
         log_output("Created server '#{s.name}' with id '#{s.id}'", :info)
 
         s.username = username
@@ -467,19 +468,6 @@ module MaestroDev
     def do_create_server(connection, options)
       server = connection.servers.create(options)
       yield(server) if block_given?
-
-      populate_meta(server, 'new')
-
-      server
-    end
-
-    # Clones an existing server
-    def do_clone_server(connection, options)
-      server = connection.vm_clone(options)
-      yield(server) if block_given?
-
-      populate_meta(server, 'clone')
-
       server
     end
 
@@ -488,6 +476,7 @@ module MaestroDev
     end
 
     def populate_meta(server, operation)
+      raise ArgumentError, "Parameter is not a Fog::Compute::Server object, it is a #{server.class}" unless server.is_a?(Fog::Compute::Server)
       if operation
         save_output_value('method', operation)
       end

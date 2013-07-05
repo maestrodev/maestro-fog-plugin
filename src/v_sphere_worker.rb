@@ -97,6 +97,16 @@ module MaestroDev
       end
       return s
     end
+
+    private
+
+    # Clones an existing server. Returns a Hash
+    def do_clone_server(connection, options)
+      server_data = connection.vm_clone(options)
+      yield(server_data) if block_given?
+      server_data
+    end
+
   end
 
 end
