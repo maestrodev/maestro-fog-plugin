@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'maestro_agent', '>= 1.5.0'
+gem 'maestro_agent', '>= 1.7.0'
 
 #dependencies
 gem "fog-maestrodev", "~>1.8.0"
