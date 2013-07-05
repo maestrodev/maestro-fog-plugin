@@ -1,4 +1,4 @@
-require 'maestro_agent'
+require 'maestro_plugin'
 require 'fog'
 require 'fog/core/model'
 
@@ -488,7 +488,7 @@ module MaestroDev
       servers = my_context_outputs[SERVERS_CONTEXT_OUTPUT_KEY] || []
 
       server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
-      ipv4 = s.public_ip_address
+      ipv4 = server.public_ip_address
       server_meta_data['ipv4'] = ipv4 if ipv4
       servers << server_meta_data
       save_output_value(SERVERS_CONTEXT_OUTPUT_KEY, servers)

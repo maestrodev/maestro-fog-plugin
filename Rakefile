@@ -1,50 +1,36 @@
 require 'rake/clean'
 require 'rspec/core/rake_task'
-require 'git'
-require 'nokogiri'
-require 'json'
+require 'maestro/plugin/rake_tasks'
+require 'json' # to merge manifests
 
-$:.push File.expand_path("../src", __FILE__)
+$:.push File.expand_path('../src', __FILE__)
 
-CLEAN.include("manifest.json", "*-plugin-*.zip", "vendor", "package", "tmp", ".bundle")
+CLEAN.include('manifest.json', '*-plugin-*.zip', 'vendor', 'package', 'tmp', '.bundle', 'manifest.template.json')
 
 task :default => :all
+task :all => [:clean, :spec, :bundle, :package]
 
-desc "Run specs"
+desc 'Run specs'
 RSpec::Core::RakeTask.new do |t|
   t.rspec_opts = "--tag ~skip"
 end
 
-desc "Get dependencies with Bundler"
-task :bundle do
-  sh "bundle install --without development test"
-  sh "bundle package"
-end
+Maestro::Plugin::RakeTasks::BundleTask.new
 
-desc "Package plugin zip"
-task :package do
-  f = File.open("pom.xml")
-  doc = Nokogiri::XML(f.read)
-  f.close
-  artifactId = doc.css('artifactId').first.text
-  version = doc.css('version').first.text
-  
-  commit = Git.open(".").log.first.sha[0..5]
+Maestro::Plugin::RakeTasks::PackageTask.new
 
+task :package => :mergemanifest
+
+desc "Generate manifest"
+task :mergemanifest do
   # merge manifests into manifest.json
   manifest = []
   merge_manifests(manifest, "provision")
   merge_manifests(manifest, "deprovision")
   merge_manifests(manifest, "create")
   merge_manifests(manifest, "modify")
-  manifest.each { |m| m['version'] = "#{version}-#{commit}" }
-  File.open("manifest.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
-  
-  sh "zip -r #{artifactId}-#{version}.zip src vendor images LICENSE README.md manifest.json"
+  File.open("manifest.template.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
 end
-
-desc "Run a clean build"
-task :all => [:clean, :spec, :bundle, :package]
 
 # Parse all partial manifests and merge them
 def merge_manifests(manifest, action)

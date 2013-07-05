@@ -1,17 +1,17 @@
 source "https://rubygems.org"
 
-gem 'maestro_agent', '>= 1.7.0'
+gem 'maestro_plugin', '>= 0.0.5'
 
 #dependencies
 gem "fog-maestrodev", "~>1.8.0"
 gem "rbvmomi", ">=1.3.0"
 
 group :development do
-  gem 'rake', '~>0.9.2'
-  gem 'nokogiri'
-  gem 'git'
+  gem 'maestro-plugin-rake-tasks'
+  gem 'json'
 end
 
 group :test do
   gem 'rspec'
+  gem 'jruby-openssl'
 end

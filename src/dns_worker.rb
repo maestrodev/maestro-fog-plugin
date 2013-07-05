@@ -1,4 +1,4 @@
-require 'maestro_agent'
+require 'maestro_plugin'
 require 'fog'
 require 'fog/core/model'
 
@@ -10,8 +10,8 @@ module MaestroDev
     end
   
     def increment_timer_from_soa(timer)
-      date = timer.match(/\d{4}\d{2}\d{2}/).andand[0]
-      date = Date.strptime(date, "%Y%m%d") unless date.nil?
+      date_match = timer.match(/\d{4}\d{2}\d{2}/)
+      date = date_match.nil? ? nil : Date.strptime(date_match[0], "%Y%m%d")
 
       if date and date == Date.today
         #increment counter

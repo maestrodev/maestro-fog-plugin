@@ -1,4 +1,4 @@
-require 'maestro_agent'
+require 'maestro_plugin'
 require 'fog_worker'
 require 'fog'
 require 'fog/compute/models/server'
