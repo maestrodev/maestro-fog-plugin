@@ -1,16 +1,20 @@
 require 'rubygems'
 require 'rspec'
 require 'fog'
+require_relative 'helpers'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../src') unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/../src')
 
 RSpec.configure do |config|
+
+  config.include Helpers
+
+  config.before(:each) do
+    Fog.mock!
+    # reduce timeout for tests that force failure
+    Fog.timeout = 3
+  end
 end
-
-Fog.mock!
-# reduce timeout for tests that force failure
-Fog.timeout = 3
-
 
 def context_outputs(provider, ids=[])
   server_meta = []
