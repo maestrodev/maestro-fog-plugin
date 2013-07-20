@@ -11,6 +11,10 @@ Currently supporting
 
 After the VMs/instances are started, the plugin can execute **SSH** commands on them. For that to happen sometimes public/private SSH keys need to be configured in the VM or in the plugin fields if possible.
 
+# Requirements
+
+Requires Maestro 4.10+ and Maestro Agent 1.11+
+
 # Common parameters
 * **number_of_vms**: number of vms/instances to start (defaults to 1)
 * name: if set it will assign a name to the VM when possible, otherwise the name will be random. If number_of_vms > 1, then the a random id will be appended (ie. vm_qwert, vm_asdfg, vm_zxcvb,...)

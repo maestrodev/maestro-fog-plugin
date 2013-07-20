@@ -407,10 +407,12 @@ module MaestroDev
 
           if s.nil?
             log_output("VM with id/name '#{id}' not found, ignoring", :warn)
+            # server was already destroyed in provider, delete anyway in master record by id
+            # we don't want to delete in master by name as it is dangerous, a new vm could be started with same name
           else
             s.destroy
           end
-          delete_server_on_master(s)
+          delete_server_on_master(id)
         rescue Exception => e
           log("Error destroying instance with id/name '#{id}'", e)
         end
@@ -428,10 +430,8 @@ module MaestroDev
         [server_name(s), provider, s.id,          s.public_ip_address, image_id  , flavor_id])
     end
 
-    def delete_server_on_master(s)
-      delete_record("machine", server_name(s))
-      # on new versions of maestro (4.10+)
-      #delete_record("machine", {"instance_id" => s.id, "type" => provider})
+    def delete_server_on_master(id)
+      delete_record("machine", {"instance_id" => id, "type" => provider})
     end
 
     # Get server name, or its id if name not supported

@@ -399,5 +399,17 @@ describe MaestroDev::FogWorker, :provider => "test" do
       end
       its(:error) { should be_nil }
     end
+
+    context 'when deprovisioning a server already deleted' do
+      let(:fields) { super.merge({"instance_ids" => [999]}) }
+
+      before do
+        subject.should_receive(:delete_record).with("machine", {"instance_id" => 999, "type" => "test"})
+        subject.deprovision
+      end
+
+      its(:error) { should be_nil }
+    end
+
   end
 end
