@@ -6,6 +6,7 @@ require 'fog/compute/models/server'
 
 describe MaestroDev::FogWorker, :provider => "test" do
 
+  # a 'test' provider
   class TestWorker < MaestroDev::FogWorker
     def provider
       "test"
@@ -18,6 +19,16 @@ describe MaestroDev::FogWorker, :provider => "test" do
       }
     end
     def send_workitem_message
+    end
+  end
+
+  # stub implementation of Servers for our 'test' provider
+  class Servers < Fog::Collection
+    def all
+      self
+    end
+    def get(id)
+      find{|s| s.id == id}
     end
   end
 
@@ -50,7 +61,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
   let(:password) { "mypassword" }
   let(:ssh_user) { "johndoe" }
   let(:private_key) { "aaaa" }
-  let(:servers) { [] }
+  let(:servers) { Servers.new }
   let(:connection) { double(:connection, :servers => servers) }
 
   before do
@@ -320,15 +331,22 @@ describe MaestroDev::FogWorker, :provider => "test" do
 
     let(:server1) do
       s = Fog::Compute::Server.new(:id => 1)
-      s.stub(:name => "server1")
+      s.stub(:name => "server1", :id => 1)
       s
     end
     let(:server2) do
       s = Fog::Compute::Server.new(:id => 2)
-      s.stub(:name => "server2")
+      s.stub(:name => "server2", :id => 2)
       s
     end
-    let(:servers) { [server1, server2] }
+    let(:servers) do
+      s = Servers.new
+      s << server1
+      s << server2
+      s
+    end
+
+    it { expect(servers.size).to eq(2) }
 
     context 'when servers were started' do
 
@@ -341,7 +359,7 @@ describe MaestroDev::FogWorker, :provider => "test" do
         }).and_return(connection)
       end
 
-      context 'when servers were normally started' do
+      context 'when normally started' do
         let(:fields) { super.merge({"test_ids" => servers.map { |s| s.id }}) }
 
         before do

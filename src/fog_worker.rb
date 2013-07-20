@@ -391,12 +391,6 @@ module MaestroDev
         return
       end
 
-
-      if ids.empty?
-        log_output("No servers found to be deprovisioned", :warn)
-        return
-      end
-
       begin
         connection = connect(true)
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
