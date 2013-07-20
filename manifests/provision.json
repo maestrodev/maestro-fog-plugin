@@ -55,6 +55,12 @@
         "type": "Password",
         "value": null,
         "description": "password to use for ssh connections if not using the ssh key (keys take precedence)"
+      },
+      "timeout": {
+        "required": false,
+        "type": "Integer",
+        "value": 600,
+        "description": "number of seconds to wait for a server to be up"
       }
 
     },
