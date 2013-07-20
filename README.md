@@ -83,6 +83,7 @@ You can find the image_id and flavor_id by adding a server from the Rackspace UI
 ### Some image ids for v2
 
 <table>
+<tr><td>e0ed4adb-3a00-433e-a0ac-a51f1bc1ea3d</td><td>CentOS 6.4</td></tr>
 <tr><td>992ba82c-083b-4eed-9c26-c54473686466</td><td>Windows Server 2012 + SharePoint Foundation 2013 with SQL Server 2012 Standard</td></tr>
 <tr><td>8a3a9f96-b997-46fd-b7a8-a9e740796ffd</td><td>Ubuntu 12.10 (Quantal Quetzal)</td></tr>
 <tr><td>a3a2c42f-575f-4381-9c6d-fcd3b7d07d17</td><td>CentOS 6.0</td></tr>

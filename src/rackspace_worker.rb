@@ -28,13 +28,17 @@ module MaestroDev
     end
 
     def connect_options
+      version = get_field('version')
+      version = version.to_s.downcase.to_sym unless version.nil?
+
       opts = {
         :rackspace_username => get_field('username'),
         :rackspace_api_key  => get_field('api_key'),
-        :version => get_field('version')
+        :version => version
       }
       auth_url = get_field('auth_url')
       opts.merge!({:rackspace_auth_url => auth_url}) if !auth_url.nil? && !auth_url.empty?
+      opts.merge!({:rackspace_endpoint => get_field('endpoint')}) if version == :v2
       return opts
     end
 
