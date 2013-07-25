@@ -3,7 +3,7 @@
 {
   "name": "InstantServers provision",
   "description": "Provision servers on InstantServers",
-  "class": "MaestroDev::JoyentWorker",
+  "class": "MaestroDev::FogPlugin::JoyentWorker",
   "task": {
     "command": "/joyent/provision",
     "inputs": {

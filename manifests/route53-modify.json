@@ -1,7 +1,7 @@
 {
   "name" : "Route53 modify record",
   "description" : "Modify an existing DNS entry in Amazon Web Services Route53",
-  "class": "MaestroDev::DnsWorker",
+  "class": "MaestroDev::FogPlugin::DnsWorker",
   "task":{
     "command" : "/dns/modify",
     "inputs" : {

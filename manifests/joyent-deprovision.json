@@ -1,7 +1,7 @@
 {
   "name" : "joyent deprovision",
   "description" : "Deprovision servers on Joyent cloud. Deprovisions all servers started in a previous provision task.",
-  "class": "MaestroDev::JoyentWorker",
+  "class": "MaestroDev::FogPlugin::JoyentWorker",
   "task":{
     "command" : "/joyent/deprovision",
     "icon":"joyent.png"

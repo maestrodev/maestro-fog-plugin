@@ -1,7 +1,7 @@
 {
   "name": "openstack provision",
   "description": "Provision servers on an OpenStack cloud",
-  "class": "MaestroDev::OpenstackWorker",
+  "class": "MaestroDev::FogPlugin::OpenstackWorker",
   "task": {
     "command": "/openstack/provision",
     "inputs": {

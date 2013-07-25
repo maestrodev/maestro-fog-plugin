@@ -46,7 +46,7 @@ require 'v_sphere_worker'
 #     cpus=1
 #   >]
 
-describe MaestroDev::VSphereWorker, :provider => "vsphere" do
+describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
 
   def connect
     Fog::Compute.new(

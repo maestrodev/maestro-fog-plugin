@@ -116,7 +116,7 @@ shared_examples "rackspace" do |version|
   end
 end
 
-describe MaestroDev::RackspaceWorker, :provider => "rackspace" do
+describe MaestroDev::FogPlugin::RackspaceWorker, :provider => "rackspace" do
   context "version 1" do
     it_behaves_like "rackspace", nil
   end

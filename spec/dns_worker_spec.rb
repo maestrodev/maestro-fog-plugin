@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'dns_worker'
 
 
-describe MaestroDev::DnsWorker do
+describe MaestroDev::FogPlugin::DnsWorker do
   it "should create a new dns entry in route53" do
     subject.should_receive(:create_record)
     subject.should_receive(:connect_dns)

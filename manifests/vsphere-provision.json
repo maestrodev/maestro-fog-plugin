@@ -1,7 +1,7 @@
 {
   "name": "vsphere provision",
   "description": "Provision servers with VMWare vSphere",
-  "class": "MaestroDev::VSphereWorker",
+  "class": "MaestroDev::FogPlugin::VSphereWorker",
   "dependencies": [
     {
       "name": "rbvmomi",

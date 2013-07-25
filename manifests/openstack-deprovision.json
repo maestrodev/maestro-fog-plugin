@@ -1,7 +1,7 @@
 {
   "name" : "openstack deprovision",
   "description" : "Deprovision servers on an OpenStack cloud. Deprovisions all servers started in a previous provision tasks.",
-  "class": "MaestroDev::OpenstackWorker",
+  "class": "MaestroDev::FogPlugin::OpenstackWorker",
   "task":{
     "command" : "/openstack/deprovision",
     "icon":"openstack.png"
