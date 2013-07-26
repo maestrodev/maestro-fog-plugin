@@ -4,7 +4,7 @@
 
   <groupId>com.maestrodev</groupId>
   <artifactId>maestro-fog-plugin</artifactId>
-  <version>1.9.2-SNAPSHOT</version>
+  <version>1.9.1</version>
   <name>maestro-fog-plugin</name>
   <packaging>pom</packaging>
 
