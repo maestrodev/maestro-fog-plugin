@@ -368,6 +368,8 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
             s.should_receive(:destroy).once
             s.should_not_receive(:stop)
           end
+          subject.should_receive(:delete_record).with("machine", {"instance_id" => 1, "type" => "test"})
+          subject.should_receive(:delete_record).with("machine", {"instance_id" => 2, "type" => "test"})
           subject.deprovision
         end
 
@@ -384,6 +386,8 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
           servers.should_receive(:get).once.with("server2").and_return(nil)
           server2.should_receive(:destroy).once
           server2.should_not_receive(:stop)
+          subject.should_receive(:delete_record).with("machine", {"instance_id" => 1, "type" => "test"})
+          subject.should_receive(:delete_record).with("machine", {"instance_id" => 2, "type" => "test"})
           subject.deprovision
         end
 
@@ -395,6 +399,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       let(:fields) { super.merge({"rackspace_ids" => []}) }
       before do
         Fog::Compute.should_receive(:new).never
+        subject.should_receive(:delete_record).never
         subject.deprovision
       end
       its(:error) { should be_nil }
