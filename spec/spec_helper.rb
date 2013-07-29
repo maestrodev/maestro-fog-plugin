@@ -13,6 +13,7 @@ RSpec.configure do |config|
     Fog.mock!
     # reduce timeout for tests that force failure
     Fog.timeout = 3
+    Maestro::MaestroWorker.mock!
   end
 end
 
