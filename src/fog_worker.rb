@@ -326,16 +326,23 @@ module MaestroDev
         servers_ready = []
         servers_provisioned = []
         start = Time.now
+        last_log = start
         timeout = get_field('timeout') || Fog.timeout
         while !servers.empty?
+          now = Time.now
           server_names = servers.map{|s| s.name}.join(", ")
-          duration = Time.now - start
+          duration = now - start
           if duration > timeout
             log_output("Servers timed out (#{duration} seconds) before being ready: #{server_names}", :warn)
             break
           end
   
-          log_output("Waiting #{(timeout - duration).to_i} seconds for servers to be ready: #{server_names}")
+          # only print waiting message every 10 secs
+          if now > last_log + 10
+            log_output("Waiting #{(timeout - duration).to_i} seconds for servers to be ready: #{server_names}")
+            last_log = now
+          end
+
           servers.each { |s| s.reload }
           s = servers.find { |s| s.ready? or s.error? }
           if s.nil?
