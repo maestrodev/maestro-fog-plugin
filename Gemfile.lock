@@ -5,7 +5,7 @@ GEM
     builder (3.2.2)
     diff-lcs (1.2.4)
     excon (0.25.2)
-    fog-maestrodev (1.14.0.20130729155226)
+    fog-maestrodev (1.14.0.20130806165225)
       builder
       excon (~> 0.25.0)
       formatador (~> 0.2.0)
