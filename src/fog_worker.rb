@@ -229,7 +229,7 @@ module MaestroDev
         errors = validate_provision_fields
         unless errors.empty?
           msg = "Not a valid fieldset, #{errors.join("\n")}"
-          Maestro.log.error msg
+          Maestro.log.info msg
           set_error msg
           return
         end
@@ -264,7 +264,7 @@ module MaestroDev
         if !(commands.nil? or commands.empty?)
           if private_key.nil? and private_key_path.nil? and ssh_password.nil?
             msg = "private_key, private_key_path or ssh_password are required for SSH"
-            Maestro.log.error msg
+            Maestro.log.info msg
             set_error msg
             return
           end
@@ -272,7 +272,7 @@ module MaestroDev
             private_key_path = File.expand_path(private_key_path)
             unless File.exist?(private_key_path)
               msg = "private_key_path does not exist: #{private_key_path}"
-              Maestro.log.error msg
+              Maestro.log.info msg
               set_error msg
               return
             end
