@@ -26,10 +26,10 @@
         "value": "https://dfw.servers.api.rackspacecloud.com/v2"
       },
       "auth_url": {
-        "description": "authentication endpoint, default to https://auth.api.rackspacecloud.com for US accounts, https://lon.auth.api.rackspacecloud.com for UK ones",
+        "description": "authentication endpoint, default to https://identity.api.rackspacecloud.com/v2.0 for US accounts, https://lon.identity.api.rackspacecloud.com/v2.0 for UK ones",
         "required": false,
         "type": "String",
-        "value": "https://auth.api.rackspacecloud.com"
+        "value": "https://identity.api.rackspacecloud.com/v2.0"
       }
     }
   },

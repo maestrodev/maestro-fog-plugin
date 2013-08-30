@@ -52,7 +52,7 @@ You can ssh to the first vm started using the ssh execute task and this hostname
 * **api_key**: Rackspace account API key
 * **version**: API version to use: **v1** or **v2** for Open Cloud Servers
 * **endpoint**: endpoint used for Rackspace v2, choosing the region to use (ie. *https://dfw.servers.api.rackspacecloud.com/v2*)
-* **auth_url**: authentication endpoint, default to https://auth.api.rackspacecloud.com for US accounts, https://lon.auth.api.rackspacecloud.com for UK ones (ie. *https://auth.api.rackspacecloud.com*)
+* **auth_url**: authentication endpoint, default to https://identity.api.rackspacecloud.com/v2.0 for US accounts, https://lon.identity.api.rackspacecloud.com/v2.0 for UK ones. Refer to http://docs.rackspace.com/auth/api/v2.0/auth-client-devguide/content/Endpoints-d1e180.html (ie. *https://identity.api.rackspacecloud.com/v2.0*)
 * **image_id**: id of the image to use (ie. *c195ef3b-9195-4474-b6f7-16e5bd86acd0* for CentOS 6.3 in v2)
 * **flavor_id**: id of the server flavor to use (RAM, CPU,…)
 * **public_key**: public key content to copy to the server as authorized key
