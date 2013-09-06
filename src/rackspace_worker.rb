@@ -35,11 +35,14 @@ module MaestroDev
         opts = {
           :rackspace_username => get_field('username'),
           :rackspace_api_key  => get_field('api_key'),
+          :rackspace_region => get_field('region'),
           :version => version
         }
         auth_url = get_field('auth_url')
         opts.merge!({:rackspace_auth_url => auth_url}) if !auth_url.nil? && !auth_url.empty?
-        opts.merge!({:rackspace_endpoint => get_field('endpoint')}) if version == :v2
+
+        compute_url = get_field('endpoint')
+        opts.merge!({:rackspace_compute_url => compute_url}) if compute_url and !compute_url.empty? and version == :v2
         return opts
       end
   
