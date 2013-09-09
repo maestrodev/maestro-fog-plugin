@@ -50,12 +50,12 @@ describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
 
     context 'when template does not exist' do
       before { subject.provision }
-      let(:fields) { super.merge({"template_path" => "doesnotexist"}) }
+      let(:fields) { super().merge({"template_path" => "doesnotexist"}) }
       its(:error) { should eq("VM template 'doesnotexist': Could not find VM template") }
     end
 
     context 'when template fails to clone' do
-      let(:fields) { super.merge({"template_path" => "another"}) }
+      let(:fields) { super().merge({"template_path" => "another"}) }
 
       before do
         connection.should_receive(:vm_clone).with({
@@ -69,7 +69,8 @@ describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
         subject.provision
       end
 
-      its(:error) { should match(%r[^Error cloning template 'another' as 'newfolder/xxx'.*message\n]) }
+      # jruby and c-ruby raise different exception messages
+      its(:error) { should match(%r[^Error cloning template 'another' as 'newfolder/xxx'.*[Ff]ault]) }
     end
   end
 
@@ -106,7 +107,7 @@ describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
 
     context 'when machine is running' do
       let(:id) { '502916a3-b42e-17c7-43ce-b3206e9524dc' }
-      let(:fields) { super.merge({"vsphere_ids" => [id]}) }
+      let(:fields) { super().merge({"vsphere_ids" => [id]}) }
 
       before do
         stub = connection.servers.find {|s| id == s.id}

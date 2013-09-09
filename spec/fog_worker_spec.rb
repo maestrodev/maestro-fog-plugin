@@ -101,7 +101,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when provisioning several servers' do
-      let(:fields) { super.merge({"number_of_vms" => 3}) }
+      let(:fields) { super().merge({"number_of_vms" => 3}) }
 
       before do
         server1 = mock_server(1, "test 1")
@@ -144,7 +144,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
 
     # in mCloud, servers don't have a public ip assigned automatically.
     context 'when told not to wait for public ip' do
-      let(:fields) { super.merge({"wait_for_public_ip" => false}).reject{ |k, v| k == 'ssh_commands' } }
+      let(:fields) { super().merge({"wait_for_public_ip" => false}).reject{ |k, v| k == 'ssh_commands' } }
 
       before do
         server = mock_server_basic(1, "test")
@@ -179,7 +179,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when some servers fail to start' do
-      let(:fields) { super.merge({"number_of_vms" => 2}) }
+      let(:fields) { super().merge({"number_of_vms" => 2}) }
 
       before do
         server1 = mock_server_basic(1, "test 1")
@@ -205,7 +205,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when some servers fail to provision' do
-      let(:fields) { super.merge({"number_of_vms" => 2}) }
+      let(:fields) { super().merge({"number_of_vms" => 2}) }
 
       before do
         server1 = mock_server(1, "test 1")
@@ -226,7 +226,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when all servers fail to provision' do
-      let(:fields) { super.merge({"number_of_vms" => 2}) }
+      let(:fields) { super().merge({"number_of_vms" => 2}) }
 
       before do
         server1 = mock_server_basic(1, "test 1")
@@ -249,7 +249,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when name is not provided should provision a machine with a random name' do
-      let(:fields) { super.reject{ |k, v| k == 'name' } }
+      let(:fields) { super().reject{ |k, v| k == 'name' } }
       before do
         subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(mock_server)
         subject.provision
@@ -258,7 +258,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when provisioning more than one server and name is not provided' do
-      let(:fields) { super.merge({"name" => nil, "number_of_vms" => 3}) }
+      let(:fields) { super().merge({"name" => nil, "number_of_vms" => 3}) }
 
       before do
         subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(
@@ -272,7 +272,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when provisioning more than one server and name is provided' do
-      let(:fields) { super.merge({"number_of_vms" => 3}) }
+      let(:fields) { super().merge({"number_of_vms" => 3}) }
 
       before do
         subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(
@@ -286,7 +286,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when ssh is not properly configured' do
-      let(:fields) { super.reject {|k,v| k=="private_key"} }
+      let(:fields) { super().reject {|k,v| k=="private_key"} }
 
       before do
         Fog::Compute.stub(:new => double("connection"))
@@ -299,7 +299,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when ssh key file does not exist' do
-      let(:fields) { super.reject {|k,v| k=="private_key"}.merge({"private_key_path" => "/blabla"}) }
+      let(:fields) { super().reject {|k,v| k=="private_key"}.merge({"private_key_path" => "/blabla"}) }
       before { subject.provision }
       its(:error) { should eq("private_key_path does not exist: /blabla") }
       it { expect(field('cloud_ids')).to be_nil }
@@ -360,7 +360,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       end
 
       context 'when normally started' do
-        let(:fields) { super.merge({"test_ids" => servers.map { |s| s.id }}) }
+        let(:fields) { super().merge({"test_ids" => servers.map { |s| s.id }}) }
 
         before do
           servers.each do |s|
@@ -377,7 +377,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       end
 
       context 'when destroying servers by id or name' do
-        let(:fields) { super.merge({"instance_ids" => ["1", "server2"]}) }
+        let(:fields) { super().merge({"instance_ids" => ["1", "server2"]}) }
 
         before do
           servers.should_receive(:get).once.with("1").and_return(server1)
@@ -396,7 +396,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when no servers were started' do
-      let(:fields) { super.merge({"rackspace_ids" => []}) }
+      let(:fields) { super().merge({"rackspace_ids" => []}) }
       before do
         Fog::Compute.should_receive(:new).never
         subject.should_receive(:delete_record).never
@@ -406,7 +406,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when deprovisioning a server already deleted' do
-      let(:fields) { super.merge({"instance_ids" => [999]}) }
+      let(:fields) { super().merge({"instance_ids" => [999]}) }
 
       before do
         subject.should_receive(:delete_record).with("machine", {"instance_id" => 999, "type" => "test"})

@@ -50,7 +50,7 @@ shared_examples "rackspace" do |version|
     # end
 
     context 'when provisioning a machine in europe' do
-      let(:fields) { super.merge({"auth_url" => auth_url}) }
+      let(:fields) { super().merge({"auth_url" => auth_url}) }
 
       it 'should succed' do
         subject.error.should be_nil
@@ -94,7 +94,7 @@ shared_examples "rackspace" do |version|
         stubs
       end
 
-      let(:fields) { super.merge({"rackspace_ids" => stubs.keys}) }
+      let(:fields) { super().merge({"rackspace_ids" => stubs.keys}) }
 
       before do
         stubs # force creation
