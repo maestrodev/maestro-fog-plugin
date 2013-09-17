@@ -22,6 +22,18 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
   end
 
+  # stub implementation of Server
+  class Server < Fog::Compute::Server
+    attr_accessor :name, :ready, :reload, :public_ip_address
+    alias_method :ready?, :ready
+    self.identity("id")
+
+    def initialize(h = {})
+      ready = false
+      h.each {|k,v| send("#{k}=",v)}
+    end
+  end
+
   # stub implementation of Servers for our 'test' provider
   class Servers < Fog::Collection
     def all
@@ -35,15 +47,12 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
   subject { TestWorker.new }
 
   def mock_server_basic(id, name)
-    server = Fog::Compute::Server.new(:id => id)
-    server.class.identity("id")
-    server.stub({:name => name, "ready?" => true, :reload => true})
-    server
+    Server.new(:id => id, :name => name, :ready => true, :reload => true)
   end
 
   def mock_server(id=1, name="test")
     server = mock_server_basic(id, name)
-    server.stub({:public_ip_address => "192.168.1.#{id}"})
+    server.public_ip_address = "192.168.1.#{id}"
     server.should_receive(:username=).with(ssh_user)
     server.should_receive(:private_key_path=).with(nil)
     server.should_receive(:private_key=).with(private_key)
@@ -89,7 +98,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       end
 
       its(:error) { should be_nil }
-      it { expect(field('cloud_ids')).to eq([1]) }
+      it { expect(field('cloud_ids')).to eq([1]), subject.output }
       it { expect(field('test_ids')).to eq([1]) }
       it { expect(field('cloud_ips')).to eq(["192.168.1.1"]) }
       it { expect(field('test_ips')).to eq(["192.168.1.1"]) }
@@ -128,7 +137,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       let(:ip) { '192.168.1.1' }
       before do
         server = mock_server_basic(1, "test")
-        server.stub("ready?").and_return(true)
+        server.ready = true
         server.should_receive(:ssh).once.and_return([ssh_result])
         server.stub(:public_ip_address).and_return(nil, nil, ip)
         subject.stub(:create_server => server)
@@ -148,8 +157,8 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
 
       before do
         server = mock_server_basic(1, "test")
-        server.stub("ready?").and_return(true)
-        server.stub(:public_ip_address).and_return(nil)
+        server.ready = true
+        server.public_ip_address = nil
         subject.stub(:create_server => server)
         subject.provision
       end
@@ -157,14 +166,14 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       its(:error) { should be_nil }
       it { expect(field('cloud_ids')).to eq([1]) }
       it { expect(field('test_ids')).to eq([1]) }
-      it { expect(field('cloud_ips')).to be_nil }
+      it { expect(field('cloud_ips')).to eq([]) }
     end
 
     context 'when server does not have public ip' do
       before do
         server = mock_server_basic(1, "test")
-        server.stub("ready?").and_return(true)
-        server.stub(:public_ip_address).and_return(nil)
+        server.ready = true
+        server.public_ip_address = nil
         subject.stub(:create_server => server)
         subject.provision
       end
@@ -183,8 +192,8 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
 
       before do
         server1 = mock_server_basic(1, "test 1")
-        server1.stub("ready?").and_return(true)
-        server1.stub(:public_ip_address).and_return(nil)
+        server1.ready = true
+        server1.public_ip_address = nil
         server2 = mock_server(2, "test 2")
         subject.should_receive(:create_server).and_return(server1, server2)
         subject.provision
@@ -210,7 +219,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       before do
         server1 = mock_server(1, "test 1")
         server2 = mock_server_basic(2, "test 2")
-        server2.stub(:public_ip_address => '192.168.1.2')
+        server2.public_ip_address = '192.168.1.2'
         failed_ssh = ssh_result
         failed_ssh.status=1
         server2.should_receive(:ssh).once.and_return([failed_ssh])
@@ -231,8 +240,8 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       before do
         server1 = mock_server_basic(1, "test 1")
         server2 = mock_server_basic(2, "test 2")
-        server1.stub(:public_ip_address => '192.168.1.1')
-        server2.stub(:public_ip_address => '192.168.1.2')
+        server1.public_ip_address = '192.168.1.1'
+        server2.public_ip_address = '192.168.1.2'
         failed_ssh = ssh_result
         failed_ssh.status=1
         server1.should_receive(:ssh).once.and_return([failed_ssh])
@@ -329,16 +338,8 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
         "test_password" => password
     }}
 
-    let(:server1) do
-      s = Fog::Compute::Server.new(:id => 1)
-      s.stub(:name => "server1", :id => 1)
-      s
-    end
-    let(:server2) do
-      s = Fog::Compute::Server.new(:id => 2)
-      s.stub(:name => "server2", :id => 2)
-      s
-    end
+    let(:server1) { Server.new(:id => 1, :name => "server1") }
+    let(:server2) { Server.new(:id => 2, :name => "server2") }
     let(:servers) do
       s = Servers.new
       s << server1
@@ -415,6 +416,109 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
 
       its(:error) { should be_nil }
     end
+  end
 
+  describe 'find' do
+
+    let(:fields) {{
+      "name" => name,
+      "hostname" => hostname,
+      "username" => username,
+      "password" => password,
+      "params" => {"command" => "find"}
+    }}
+
+    context 'when successful' do
+
+      let(:servers) do
+        s = Servers.new
+        s << mock_server_basic(1, "server1")
+        s << mock_server_basic(2, "server2")
+        s
+      end
+
+      before { subject.find }
+
+      context 'when finding by full name' do
+        let(:name) { "server1" }
+        it { expect(field('test_ids')).to eq([1]) }
+        it { expect(field('cloud_ids')).to eq([1]) }
+        its(:error) { should be_nil }
+      end
+
+      context 'when finding by partial match' do
+        let(:name) { "server" }
+        it { expect(field('test_ids')).to eq([1,2]) }
+        it { expect(field('cloud_ids')).to eq([1,2]) }
+        its(:error) { should be_nil }
+      end
+
+      context 'when finding by regex' do
+        let(:name) { "^server1$" }
+        it { expect(field('test_ids')).to eq([1]) }
+        it { expect(field('cloud_ids')).to eq([1]) }
+        its(:error) { should be_nil }
+      end
+
+      context 'when not finding any server' do
+        let(:name) { "server$" }
+        it { expect(field('test_ids')).to eq([]) }
+        it { expect(field('cloud_ids')).to eq([]) }
+        its(:error) { should be_nil }
+      end
+    end
+
+    context 'when server does not respond to name' do
+      let(:servers) {
+        s = Servers.new
+        s << Fog::Compute::Server.new(:id => 1)
+        s << Fog::Compute::Server.new(:id => 2)
+        s
+      }
+      let(:name) { "server" }
+      it { expect { subject.find }.to raise_error(MaestroDev::Plugin::PluginError, "Provider test does not support finding servers by name") }
+    end
+  end
+
+  describe 'update' do
+
+    let(:name) { "server3" }
+    let(:server1) { mock_server_basic(1, "server1") }
+    let(:fields) {{
+      "id" => server1.id,
+      "name" => name,
+      "hostname" => hostname,
+      "username" => username,
+      "password" => password,
+      "params" => {"command" => "update"}
+    }}
+
+    let(:servers) do
+      s = Servers.new
+      s << server1
+      s << mock_server_basic(2, "server2")
+      s
+    end
+
+    context 'when successful' do
+      before do
+        server1.should_receive(:update)
+        subject.update
+      end
+
+      context 'when updating name' do
+        its(:error) { should be_nil }
+        it { expect(server1.name).to eq(name) }
+      end
+    end
+
+    context 'when server does not respond to name' do
+      let(:server1) do
+        s = Fog::Compute::Server.new
+        s.stub(:id => 1)
+        s
+      end
+      it { expect { subject.update }.to raise_error(MaestroDev::Plugin::PluginError, "Provider test does not support name attribute") }
+    end
   end
 end

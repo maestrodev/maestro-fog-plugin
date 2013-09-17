@@ -1,0 +1,32 @@
+{
+  "license" : "Apache 2.0",
+  "author": "MaestroDev",
+  "version": "updated at build time",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.7.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "inputs" :  {
+
+      /* common fields */
+      "name": {
+          "description": "server name must match this regex", 
+          "required": true, 
+          "type": "String", 
+          "value": null
+      }
+
+    },
+    "outputs" : {
+      "cloud_ips": {"type" : "Array"},
+      "cloud_ids": {"type" : "Array"}
+    },
+    "tool_name":"Cloud",
+    "icon":"cloud.png"
+  }
+}

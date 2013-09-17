@@ -1,0 +1,36 @@
+{
+  "license" : "Apache 2.0",
+  "author": "MaestroDev",
+  "version": "updated at build time",
+  "type":"ruby",
+  "dependencies":[
+    {
+      "name" : "fog",
+      "version" : "1.7.0",
+      "source" : "http://rubygems.org/"
+    }
+  ],
+  "task":{
+    "inputs" :  {
+
+      /* common fields */
+      "id": {
+          "description": "id of server to update",
+          "required": true, 
+          "type": "String", 
+          "value": null
+      },
+      "name": {
+          "description": "new server name",
+          "required": false, 
+          "type": "String", 
+          "value": null
+      }
+
+    },
+    "outputs" : {
+    },
+    "tool_name":"Cloud",
+    "icon":"cloud.png"
+  }
+}

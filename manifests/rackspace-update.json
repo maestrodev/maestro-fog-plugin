@@ -1,0 +1,13 @@
+{
+  "name": "rackspace update",
+  "description": "Update a server on Rackspace",
+  "class": "MaestroDev::FogPlugin::RackspaceWorker",
+  "task": {
+    "command": "/rackspace/update",
+    "inputs": {
+    },
+    "outputs": {
+    },
+    "icon": "rackspace.png"
+  }
+}

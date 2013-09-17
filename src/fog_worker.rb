@@ -38,7 +38,7 @@ module MaestroDev
         required_fields.each{|s|
           errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
         }
-        return errors
+        raise ConfigError, "Not a valid fieldset, #{errors.join("\n")}" unless errors.empty?
       end
   
       def provider
@@ -58,8 +58,13 @@ module MaestroDev
       def setup_server(s)
         # noop
       end
-  
+
+      # connect to the provider
       def connect(overwrite_from_fields = false)
+        msg = "Connecting to #{provider}"
+        Maestro.log.info msg
+        write_output "#{msg}..."
+
         opts = connect_options
         # used for deprovision, get the fields set by the provision task
         # the field names could have been overwritten by other tasks
@@ -70,7 +75,13 @@ module MaestroDev
           end
         end
         opts.each { |k,v| set_field(k.to_s, v) }
-        Fog::Compute.new(opts.merge(:provider => provider))
+        connection = Fog::Compute.new(opts.merge(:provider => provider))
+
+        Maestro.log.debug "Connected to #{provider}"
+        write_output("done\n")
+        return connection
+      rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
+        raise MaestroDev::Plugin::PluginError, "Unable to connect to #{provider}: #{e}"
       end
   
       # character to use to split names with random_name
@@ -111,22 +122,10 @@ module MaestroDev
         Maestro.log.debug "Server '#{s.name}' #{s.id} is now accessible through ssh"
         write_output("done\n")
   
-        private_addr = private_address(s)
-  
-        if private_addr and !private_addr.empty?
-          set_field("#{provider}_private_ips", (get_field("#{provider}_private_ips") || []) << private_addr)
-          set_field("cloud_private_ips", (get_field("cloud_private_ips") || []) << private_addr)
-        end
-  
         # save some values in the workitem so they are accessible for deprovision and other tasks
-        unless s.public_ip_address.nil?
-          set_field("#{provider}_ips", (get_field("#{provider}_ips") || []) << s.public_ip_address)
-          set_field("cloud_ips", (get_field("cloud_ips") || []) << s.public_ip_address)
-        end
-        set_field("#{provider}_names", (get_field("#{provider}_names") || []) << server_name(s))
-        set_field("cloud_names", (get_field("cloud_names") || []) << server_name(s))
+        save_server_in_context([s])
   
-        log_output("Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_addr}'", :info)
+        log_output("Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_address(s)}'", :info)
   
         msg = "Initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
         Maestro.log.debug msg
@@ -225,30 +224,8 @@ module MaestroDev
   
       def provision
         log_output("Starting #{provider} provision", :info)
-  
-        errors = validate_provision_fields
-        unless errors.empty?
-          msg = "Not a valid fieldset, #{errors.join("\n")}"
-          Maestro.log.info msg
-          set_error msg
-          return
-        end
-  
-        begin
-          msg = "Connecting to #{provider}"
-          Maestro.log.info msg
-          write_output "#{msg}..."
-          connection = connect
-          Maestro.log.debug "Connected to #{provider}"
-          write_output("done\n")
-        rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
-          msg = "Unable to connect to #{provider}: #{e}"
-          write_output("#{msg}\n")
-          Maestro.log.error msg
-          set_error msg
-          return
-        end
-  
+        validate_provision_fields
+        connection = connect
         servers = []
   
         number_of_vms = get_field('number_of_vms') || 1
@@ -299,12 +276,12 @@ module MaestroDev
   
           # create the server in the cloud provider
           s = create_server(connection, server_name)
-  
+
           if s.nil? && get_field("__error__").nil?
             log_output("Failed to create server '#{server_name}'", :error)
           end
           next if s.nil?
-  
+
           populate_meta(s, 'new')
           log_output("Created server '#{s.name}' with id '#{s.id}'", :info)
   
@@ -314,10 +291,7 @@ module MaestroDev
           servers << s
         end
   
-        # save server ids for deprovisioning
-        ids = servers.map {|s| s.id}
-        set_field("#{provider}_ids", ids)
-        set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
+        save_server_ids_in_context(servers)
   
         # if there was an error provisioning servers, return
         return if !get_field("__error__").nil? and !get_field("__error__").empty?
@@ -399,14 +373,7 @@ module MaestroDev
           return
         end
   
-        begin
-          connection = connect(true)
-        rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
-          msg = "Unable to connect to #{provider}: #{e}"
-          Maestro.log.error msg
-          set_error msg
-          return
-        end
+        connection = connect(true)
   
         ids.each do |id|
           log_output("Deprovisioning VM with id/name '#{id}'", :info)
@@ -428,6 +395,65 @@ module MaestroDev
         end
   
         log_output("Maestro #{provider} deprovision complete!", :info)
+      end
+
+      # find servers in cloud provider
+      def find
+        log_output("Starting #{provider} find", :info)
+        validate_provision_fields
+        connection = connect
+  
+        name = get_field('name')
+        # select those servers matching name. Fail if servers don't have a name
+        servers = connection.servers.select do |s|
+          if s.respond_to?(:name)
+            s.name =~ /#{name}/
+          else
+            raise MaestroDev::Plugin::PluginError, "Provider #{provider} does not support finding servers by name"
+          end
+        end
+
+        save_server_ids_in_context(servers)
+        save_server_in_context(servers)
+
+        msg = servers.empty? ? "#{provider} found no servers" : "#{provider} found #{servers.size} servers: "
+        msg += servers.map{|s| s.respond_to?(:name) ? s.name : s.id}.join(",")
+        Maestro.log.debug msg
+        write_output("#{msg}\n")
+      end
+
+      # attributes tha can be updated in the provider' server
+      def updatable_attributes
+        [:name]
+      end
+
+      # update servers in cloud provider
+      def update
+        log_output("Starting #{provider} update", :info)
+        validate_provision_fields
+        connection = connect
+  
+        id = get_field('id')
+        server = connection.servers.get(id)
+        log_output("#{provider} updating server #{id}: #{server.nil? ? 'not found' : 'found' }")
+
+        # attributes to update in the server
+        new_attributes = {}
+        updatable_attributes.each do |attribute|
+          new_attributes[attribute] = get_field(attribute.to_s)
+        end
+
+        new_attributes.delete_if { |k, v| v.nil? or v.empty? }
+        new_attributes.each do |k,v|
+          if server.respond_to?(k)
+            server.send("#{k}=",v)
+          else
+            raise MaestroDev::Plugin::PluginError, "Provider #{provider} does not support #{k} attribute"
+          end
+        end
+        server.update unless new_attributes.empty?
+
+        log_output("#{provider} server #{id} updated with: #{new_attributes}", :info)
       end
   
       # save the server data in the Maestro database
@@ -495,8 +521,43 @@ module MaestroDev
         server_meta_data['ipv4'] = ipv4 if ipv4
         servers << server_meta_data
         save_output_value(SERVERS_CONTEXT_OUTPUT_KEY, servers)
-  
       end
+
+      # save server ids in context for deprovisioning or other tasks
+      def save_server_ids_in_context(servers)
+        ids = servers.map {|s| s.id}
+        set_field("#{provider}_ids", ids.concat(get_field("#{provider}_ids") || []))
+        set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
+      end
+
+      # save server name, public and private ip address in context
+      def save_server_in_context(servers)
+        fields = ["#{provider}_private_ips", "cloud_private_ips", "#{provider}_ips", "cloud_ips", "#{provider}_names", "cloud_names"]
+        values = {}
+        fields.each {|f| values[f] = get_field(f) || []}
+
+        servers.each do |s|
+          private_addr = private_address(s)
+          ip = s.public_ip_address
+          name = server_name(s)
+
+          if private_addr and !private_addr.empty?
+            values["#{provider}_private_ips"] << private_addr
+            values["cloud_private_ips"] << private_addr
+          end
+
+          unless s.public_ip_address.nil?
+            values["#{provider}_ips"] << ip
+            values["cloud_ips"] << ip
+          end
+
+          values["#{provider}_names"] << name
+          values["cloud_names"] << name
+        end
+
+        values.each {|k,v| set_field(k, v)}
+      end
+
     end
   end
 end

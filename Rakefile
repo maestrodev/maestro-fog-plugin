@@ -22,6 +22,8 @@ task :mergemanifest do
   manifest = []
   merge_manifests(manifest, "provision")
   merge_manifests(manifest, "deprovision")
+  merge_manifests(manifest, "find")
+  merge_manifests(manifest, "update")
   merge_manifests(manifest, "create")
   merge_manifests(manifest, "modify")
   File.open("manifest.template.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
