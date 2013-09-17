@@ -42,7 +42,7 @@ shared_examples "rackspace" do |version|
     end
 
     # can't test it with mock
-    # it 'should fail when image does not exist', :skip => true do
+    # it 'should fail when image does not exist', :disabled => true do
     #
     #   subject.stub(:workitem => {"fields" => fields.merge({"image_id" => "999999"})})
     #   subject.provision
@@ -120,7 +120,7 @@ describe MaestroDev::FogPlugin::RackspaceWorker, :provider => "rackspace" do
   context "version 1" do
     it_behaves_like "rackspace", nil
   end
-  context "version 2", :skip => true do
+  context "version 2", :disabled => true do
     it_behaves_like "rackspace", "v2"
   end
 end

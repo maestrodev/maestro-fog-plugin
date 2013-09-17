@@ -49,7 +49,7 @@ describe MaestroDev::FogPlugin::OpenstackWorker, :provider => "openstack" do
       }
     end
 
-    it 'should provision a machine', :skip => true do
+    it 'should provision a machine', :disabled => true do
       subject.stub(:workitem => {"fields" => @fields})
       subject.provision
 
@@ -63,14 +63,14 @@ describe MaestroDev::FogPlugin::OpenstackWorker, :provider => "openstack" do
     end
 
     # can't test it with mock
-    # it 'should fail when image does not exist', :skip => true do
+    # it 'should fail when image does not exist', :disabled => true do
     #
     #   subject.stub(:workitem => {"fields" => @fields.merge({"image_id" => 999999})})
     #   subject.provision
     #   subject.error.should eq("Image id '999999' flavor '1' not found")
     # end
 
-    it 'should provision a machine in a different endpoint', :skip => true do
+    it 'should provision a machine in a different endpoint', :disabled => true do
       subject.stub(:workitem => {"fields" => @fields.merge({"auth_url" => @auth_url})})
       subject.provision
 
@@ -92,7 +92,7 @@ describe MaestroDev::FogPlugin::OpenstackWorker, :provider => "openstack" do
       }
     end
 
-    it 'should deprovision a machine', :skip => true do
+    it 'should deprovision a machine', :disabled => true do
       connection = connect
 
       # create 2 servers

@@ -10,13 +10,8 @@ CLEAN.include('manifest.json', '*-plugin-*.zip', 'vendor', 'package', 'tmp', '.b
 task :default => :all
 task :all => [:clean, :spec, :bundle, :package]
 
-desc 'Run specs'
-RSpec::Core::RakeTask.new do |t|
-  t.rspec_opts = "--tag ~skip"
-end
-
+RSpec::Core::RakeTask.new
 Maestro::Plugin::RakeTasks::BundleTask.new
-
 Maestro::Plugin::RakeTasks::PackageTask.new
 
 task :package => :mergemanifest

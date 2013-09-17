@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'joyent_worker'
 
-describe MaestroDev::FogPlugin::JoyentWorker, :provider => "joyent", :skip => true do
+describe MaestroDev::FogPlugin::JoyentWorker, :provider => "joyent", :disabled => true do
 
   def connect
     Fog::Compute.new(

@@ -7,6 +7,13 @@ $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../src') unless $LOAD_PATH.include
 
 RSpec.configure do |config|
 
+  # Only run focused specs:
+  config.filter_run :focus => true
+  config.filter_run_excluding :disabled => true
+
+  # Yep, if there is nothing filtered, run the whole thing.
+  config.run_all_when_everything_filtered = true
+
   config.include Helpers
 
   config.before(:each) do
