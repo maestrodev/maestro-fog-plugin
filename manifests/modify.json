@@ -43,15 +43,5 @@
     },
     "tool_name":"Cloud",
     "icon":"cloud.png"
-  },
-  "source_types": [
-    {
-      "options" : {
-        "ssh_user": "String",
-        "ssh_password": "Password",
-        "private_key": "String",
-        "private_key_path": "String"
-      }
-    }
-  ]
+  }
 }
