@@ -282,7 +282,7 @@ module MaestroDev
           end
           next if s.nil?
 
-          populate_meta(s, 'new')
+          populate_meta([s], 'new')
           log_output("Created server '#{s.name}' with id '#{s.id}'", :info)
   
           s.username = username
@@ -413,8 +413,9 @@ module MaestroDev
           end
         end
 
-        save_server_ids_in_context(servers)
-        save_server_in_context(servers)
+        save_server_ids_in_context(servers, true)
+        save_server_in_context(servers, true)
+        populate_meta(servers, 'find', true)
 
         msg = servers.empty? ? "#{provider} found no servers" : "#{provider} found #{servers.size} servers: "
         msg += servers.map{|s| s.respond_to?(:name) ? s.name : s.id}.join(",")
@@ -452,6 +453,7 @@ module MaestroDev
           end
         end
         server.update unless new_attributes.empty?
+        populate_meta([server], 'update')
 
         log_output("#{provider} server #{id} updated with: #{new_attributes}", :info)
       end
@@ -487,7 +489,8 @@ module MaestroDev
       def server_flavor_id(s)
         s.respond_to?('flavor_id') ? s.flavor_id : nil
       end
-      
+
+
       # Helper methods that can only be called within this class/subclass - not exposed to external entitles
       # The main idea here is that we don't really want subclasses calling methods on the connection, by doing that
       # they bypass our ability to report info & metrics'y stuff
@@ -504,34 +507,39 @@ module MaestroDev
         connection.servers.get(id)
       end
   
-      def populate_meta(server, operation)
-        raise ArgumentError, "Parameter is not a Fog::Compute::Server object, it is a #{server.class}" unless server.is_a?(Fog::Compute::Server)
-        if operation
-          save_output_value('method', operation)
-        end
-  
+      # populate the contex outputs with a server hash object
+      # overwrite removes all previous servers from the context
+      def populate_meta(servers, operation, overwrite=false)
+        save_output_value('method', operation) if operation
+
         # Cannot use 'read_output_value' without ensuring the value is already set, otherwise it will
         # return the value from the previous run, so we will have to hack it until the read_output_value
         # method can take a "ignore_previous" type flag -- akk
         my_context_outputs = get_field('__context_outputs__') || {}
-        servers = my_context_outputs[SERVERS_CONTEXT_OUTPUT_KEY] || []
+        context_servers = (overwrite ? nil : my_context_outputs[SERVERS_CONTEXT_OUTPUT_KEY]) || []
   
-        server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
-        ipv4 = server.public_ip_address
-        server_meta_data['ipv4'] = ipv4 if ipv4
-        servers << server_meta_data
-        save_output_value(SERVERS_CONTEXT_OUTPUT_KEY, servers)
+        servers.each do |server|
+          raise ArgumentError, "Parameter is not a Fog::Compute::Server object, it is a #{server.class}" unless server.is_a?(Fog::Compute::Server)
+    
+          server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
+          ipv4 = server.public_ip_address
+          server_meta_data['ipv4'] = ipv4 if ipv4
+          context_servers << server_meta_data
+        end
+        save_output_value(SERVERS_CONTEXT_OUTPUT_KEY, context_servers)
       end
 
       # save server ids in context for deprovisioning or other tasks
-      def save_server_ids_in_context(servers)
+      # overwrite removes all previous server ids from the context
+      def save_server_ids_in_context(servers, overwrite=true)
         ids = servers.map {|s| s.id}
         set_field("#{provider}_ids", ids.concat(get_field("#{provider}_ids") || []))
         set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
       end
 
       # save server name, public and private ip address in context
-      def save_server_in_context(servers)
+      # overwrite removes all previous servers from the context
+      def save_server_in_context(servers, overwrite=true)
         fields = ["#{provider}_private_ips", "cloud_private_ips", "#{provider}_ips", "cloud_ips", "#{provider}_names", "cloud_names"]
         values = {}
         fields.each {|f| values[f] = get_field(f) || []}

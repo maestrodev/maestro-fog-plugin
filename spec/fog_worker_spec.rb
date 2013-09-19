@@ -107,6 +107,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       it { expect(field('test_hostname')).to eq("myhostname") }
       it { expect(field('test_username')).to eq("myusername") }
       it { expect(field('test_password')).to eq("mypassword") }
+      it { expect(field('__context_outputs__')['servers'].length).to eq(1), subject.output }
     end
 
     context 'when provisioning several servers' do
@@ -443,6 +444,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
         let(:name) { "server1" }
         it { expect(field('test_ids')).to eq([1]) }
         it { expect(field('cloud_ids')).to eq([1]) }
+        it { expect(field('__context_outputs__')['servers'].length).to eq(1) }
         its(:error) { should be_nil }
       end
 
@@ -450,6 +452,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
         let(:name) { "server" }
         it { expect(field('test_ids')).to eq([1,2]) }
         it { expect(field('cloud_ids')).to eq([1,2]) }
+        it { expect(field('__context_outputs__')['servers'].length).to eq(2) }
         its(:error) { should be_nil }
       end
 
@@ -457,6 +460,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
         let(:name) { "^server1$" }
         it { expect(field('test_ids')).to eq([1]) }
         it { expect(field('cloud_ids')).to eq([1]) }
+        it { expect(field('__context_outputs__')['servers'].length).to eq(1) }
         its(:error) { should be_nil }
       end
 
@@ -464,6 +468,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
         let(:name) { "server$" }
         it { expect(field('test_ids')).to eq([]) }
         it { expect(field('cloud_ids')).to eq([]) }
+        it { expect(field('__context_outputs__')['servers'].length).to eq(0) }
         its(:error) { should be_nil }
       end
     end
@@ -509,6 +514,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       context 'when updating name' do
         its(:error) { should be_nil }
         it { expect(server1.name).to eq(name) }
+        it { expect(field('__context_outputs__')['servers'].length).to eq(1) }
       end
     end
 
