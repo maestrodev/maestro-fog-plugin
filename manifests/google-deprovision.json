@@ -1,0 +1,10 @@
+{
+  "name": "google compute engine deprovision",
+  "description": "Deprovision servers in Google Compute Engine. Deprovisions all servers started in a previous provision tasks.",
+  "class": "MaestroDev::FogPlugin::GoogleWorker",
+  "task": {
+    "inputs": {},
+    "command": "/google/deprovision",
+    "icon": "google.png"
+  }
+}

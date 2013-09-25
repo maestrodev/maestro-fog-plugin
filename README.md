@@ -150,6 +150,14 @@ You can find the image_id and flavor_id by adding a server from the Rackspace UI
 * **public_key_path**: path to public key to copy to the server as authorized key
 * **security_group**: the name of the security group to add this VM to
 
+# Google Compute Engine
+
+To get your authorization key, visit the [Google API Console](https://code.google.com/apis/console). Once there, go to "API Access". Click "Create another client ID" and select "service account". Download the private key to be used in Maestro and take note of the Service account email address.
+
+* **project**: Project id
+* **client_email**: Service account email address
+* **key_location**: Path in the agent filesystem where the pk12 private key is saved
+
 
 # Joyent
 

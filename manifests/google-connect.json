@@ -1,0 +1,34 @@
+{
+  "task": {
+    "inputs": {
+      "project": {
+        "description": "Google project id",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "client_email": {
+        "description": "Google client service email",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "key_location": {
+        "description": "Key location",
+        "required": true,
+        "type": "String",
+        "value": "~/google-key.p12"
+      }
+    }
+  },
+  "source_types": [
+    {
+      "name": "google compute engine",
+      "options": {
+        "project": "String",
+        "client_email": "String",
+        "key_location": "String"
+      }
+    }
+  ]
+}

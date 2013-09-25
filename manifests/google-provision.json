@@ -1,0 +1,55 @@
+{
+  "name": "google compute engine provision",
+  "description": "Provision servers in Google Compute Engine",
+  "class": "MaestroDev::FogPlugin::GoogleWorker",
+  "task": {
+    "command": "/google/provision",
+    "inputs": {
+      "image_name": {
+        "description": "name of the image to use (ie. centos-6-v20130813)",
+        "required": true,
+        "type": "String",
+        "value": "centos-6-v20130813"
+      },
+      "machine_type": {
+        "description": "Machine type defining RAM and CPU",
+        "required": true,
+        "type": "String",
+        "value": "n1-standard-1"
+      },
+      "zone_name": {
+        "description": "Zone to start the server in",
+        "required": true,
+        "type": "String",
+        "value": "us-central1-a"
+      },
+      "public_key": {
+        "description": "public key content to copy to the server as authorized key",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
+      "public_key_path": {
+        "description": "path to public key to copy to the server as authorized key",
+        "required": false,
+        "type": "String",
+        "value": "~/.ssh/id_rsa.pub"
+      },
+      "ssh_user": {
+          "required": false, 
+          "type": "String", 
+          "value": "user",
+          "description": "username to use for ssh connection. Note that Google images have root ssh disabled by default"
+      }
+    },
+    "outputs": {
+      "google_ips": {
+        "type": "Array"
+      },
+      "google_ids": {
+        "type": "Array"
+      }
+    },
+    "icon": "google.png"
+  }
+}

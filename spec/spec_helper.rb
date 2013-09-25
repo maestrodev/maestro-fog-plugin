@@ -2,6 +2,7 @@ require 'rubygems'
 require 'rspec'
 require 'fog'
 require_relative 'helpers'
+require 'maestro_plugin/logging_stdout'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../src') unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/../src')
 
