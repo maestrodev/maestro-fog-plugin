@@ -38,7 +38,7 @@ module MaestroDev
         required_fields.each{|s|
           errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
         }
-        raise ConfigError, "Not a valid fieldset, #{errors.join("\n")}" unless errors.empty?
+        raise MaestroDev::Plugin::ConfigError, "Not a valid fieldset, #{errors.join("\n")}" unless errors.empty?
       end
   
       def provider

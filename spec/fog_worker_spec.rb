@@ -65,6 +65,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     r
   end
 
+  let(:fields) {{}}
   let(:hostname) { "myhostname" }
   let(:username) { "myusername" }
   let(:password) { "mypassword" }
@@ -76,6 +77,13 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
   before do
     subject.stub(:workitem => {"fields" => fields})
     Fog::Compute.stub(:new => connection)
+  end
+
+  describe 'validate_provision_fields' do
+    context 'when fields are missing' do
+      before { subject.stub(:required_fields => ['my_field']) }
+      it { expect { subject.provision }.to raise_error(MaestroDev::Plugin::ConfigError, "Not a valid fieldset, missing my_field") }
+    end
   end
 
   describe 'provision' do
