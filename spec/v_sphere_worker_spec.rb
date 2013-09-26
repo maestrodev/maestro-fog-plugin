@@ -88,13 +88,13 @@ describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
 
     context 'when machines have been created' do
       before do
-        stubs = connection.servers.find_all {|s| fields["vsphere_ids"].include?(s.id)}
+        stubs = connection.servers.find_all {|s| fields["vsphere_ids"].include?(s.identity)}
         stubs.size.should == 2
         servers = double("servers")
         connection.stub(:servers => servers)
 
         stubs.each do |s|
-          servers.should_receive(:get).once.with(s.id).and_return(s)
+          servers.should_receive(:get).once.with(s.identity).and_return(s)
           s.stub(:ready? => false)
           s.should_not_receive(:stop)
           s.should_receive(:destroy).once
@@ -110,7 +110,7 @@ describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
       let(:fields) { super().merge({"vsphere_ids" => [id]}) }
 
       before do
-        stub = connection.servers.find {|s| id == s.id}
+        stub = connection.servers.find {|s| id == s.identity}
         stub.should_not be_nil
         servers = double('servers')
         connection.stub(:servers => servers)

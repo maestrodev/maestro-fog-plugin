@@ -40,7 +40,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
       self
     end
     def get(id)
-      find{|s| s.id == id}
+      find{|s| s.identity == id}
     end
   end
 
@@ -374,7 +374,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
 
         before do
           servers.each do |s|
-            servers.should_receive(:get).once.with(s.id).and_return(s)
+            servers.should_receive(:get).once.with(s.identity).and_return(s)
             s.should_receive(:destroy).once
             s.should_not_receive(:stop)
           end
@@ -498,7 +498,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     let(:name) { "server3" }
     let(:server1) { mock_server_basic(1, "server1") }
     let(:fields) {{
-      "id" => server1.id,
+      "id" => server1.identity,
       "name" => name,
       "hostname" => hostname,
       "username" => username,
@@ -527,11 +527,14 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
     end
 
     context 'when server does not respond to name' do
-      let(:server1) do
-        s = Fog::Compute::Server.new
-        s.stub(:id => 1)
-        s
+      class ServerWithoutName < Fog::Compute::Server
+        self.identity("id")
+        def initialize(id)
+          self.id = id
+        end
       end
+
+      let(:server1) { ServerWithoutName.new(1) }
       it { expect { subject.update }.to raise_error(MaestroDev::Plugin::PluginError, "Provider test does not support name attribute") }
     end
   end

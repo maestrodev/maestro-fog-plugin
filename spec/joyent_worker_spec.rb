@@ -74,7 +74,7 @@ describe MaestroDev::FogPlugin::JoyentWorker, :provider => "joyent", :disabled =
                                       :dataset => @dataset,
                                       :name => @name)
         s.wait_for { ready? }
-        stubs[s.id]=s
+        stubs[s.identity]=s
       end
 
       subject.stub(:workitem => {"fields" => @fields.merge({"joyent_ids" => stubs.keys})})
@@ -83,7 +83,7 @@ describe MaestroDev::FogPlugin::JoyentWorker, :provider => "joyent", :disabled =
       connection.stub(:servers => servers)
 
       stubs.values.each do |s|
-        servers.should_receive(:get).once.with(s.id).and_return(s)
+        servers.should_receive(:get).once.with(s.identity).and_return(s)
         s.ready?.should == true
         s.should_receive(:destroy).once
         s.should_not_receive(:stop)

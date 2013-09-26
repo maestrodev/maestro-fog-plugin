@@ -89,7 +89,7 @@ shared_examples "rackspace" do |version|
         (1..2).each do |i|
           s = connection.servers.create
           s.wait_for { ready? }
-          stubs[s.id]=s
+          stubs[s.identity]=s
         end
         stubs
       end
@@ -103,7 +103,7 @@ shared_examples "rackspace" do |version|
         connection.stub(:servers => servers)
 
         stubs.values.each do |s|
-          servers.should_receive(:get).once.with(s.id).and_return(s)
+          servers.should_receive(:get).once.with(s.identity).and_return(s)
           s.ready?.should == true
           s.should_receive(:destroy).once
           s.should_not_receive(:stop)

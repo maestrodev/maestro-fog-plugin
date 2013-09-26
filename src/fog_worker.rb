@@ -105,44 +105,44 @@ module MaestroDev
         wait_for_public_ip = get_field('wait_for_public_ip')
   
         unless wait_for_public_ip == false
-          msg = "Waiting for server '#{s.name}' #{s.id} to get a public ip"
+          msg = "Waiting for server '#{s.name}' #{s.identity} to get a public ip"
           Maestro.log.debug msg
           write_output("#{msg}... ")
   
           begin
             s.wait_for { !public_ip_address.nil? and !public_ip_address.empty? }
           rescue Fog::Errors::TimeoutError => e
-            msg = "Server '#{s.name}' #{s.id} failed to get a public ip"
+            msg = "Server '#{s.name}' #{s.identity} failed to get a public ip"
             Maestro.log.warn msg
             write_output("failed\n")
             return nil
           end
         end
   
-        Maestro.log.debug "Server '#{s.name}' #{s.id} is now accessible through ssh"
+        Maestro.log.debug "Server '#{s.name}' #{s.identity} is now accessible through ssh"
         write_output("done\n")
   
         # save some values in the workitem so they are accessible for deprovision and other tasks
         save_server_in_context([s])
   
-        log_output("Server '#{s.name}' #{s.id} started with public ip '#{s.public_ip_address}' and private ip '#{private_address(s)}'", :info)
+        log_output("Server '#{s.name}' #{s.identity} started with public ip '#{s.public_ip_address}' and private ip '#{private_address(s)}'", :info)
   
-        msg = "Initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
+        msg = "Initial setup for server '#{s.name}' #{s.identity} on '#{s.public_ip_address}'"
         Maestro.log.debug msg
         write_output("#{msg}...")
         begin
           setup_server(s)
-          Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.id} on '#{s.public_ip_address}'"
+          Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.identity} on '#{s.public_ip_address}'"
           write_output("done\n")
         rescue Net::SSH::AuthenticationFailed => e
-          log_output("Failed to setup server '#{s.name}' #{s.id} on '#{s.public_ip_address}'. Authentication failed for user '#{s.username}'")
+          log_output("Failed to setup server '#{s.name}' #{s.identity} on '#{s.public_ip_address}'. Authentication failed for user '#{s.username}'")
           return nil
         end
   
         # provision through ssh
         server_errors = provision_execute(s, commands)
         unless server_errors.empty?
-          log_output("Server '#{s.name}' #{s.id} failed to provision", :info)
+          log_output("Server '#{s.name}' #{s.identity} failed to provision", :info)
           write_output(server_errors.join("\n"))
           return nil
         end
@@ -283,7 +283,7 @@ module MaestroDev
           next if s.nil?
 
           populate_meta([s], 'new')
-          log_output("Created server '#{s.name}' with id '#{s.id}'", :info)
+          log_output("Created server '#{s.name}' with id '#{s.identity}'", :info)
   
           s.username = username
           s.private_key = private_key
@@ -324,11 +324,11 @@ module MaestroDev
           else
             if s.error?
               state = s.respond_to?('state') ? " with state: #{s.state}" : ""
-              Maestro.log.warn "Server '#{s.name}' #{s.id} failed to start#{state}"
+              Maestro.log.warn "Server '#{s.name}' #{s.identity} failed to start#{state}"
               write_output("failed#{state}\n")
               servers.delete(s)
             else
-              log_output("Server '#{s.name}' #{s.id} is ready")
+              log_output("Server '#{s.name}' #{s.identity} is ready")
               servers_ready << servers.delete(s)
               # wait for servers to have public ip and run commands. Don't add provisioning time to timeout
               provision_start = Time.now
@@ -387,7 +387,7 @@ module MaestroDev
               delete_server_on_master(id)
             else
               s.destroy
-              delete_server_on_master(s.id)
+              delete_server_on_master(s.identity)
             end
           rescue Exception => e
             log("Error destroying instance with id/name '#{id}'", e)
@@ -418,7 +418,7 @@ module MaestroDev
         populate_meta(servers, 'find', true)
 
         msg = servers.empty? ? "#{provider} found no servers" : "#{provider} found #{servers.size} servers: "
-        msg += servers.map{|s| s.respond_to?(:name) ? s.name : s.id}.join(",")
+        msg += servers.map{|s| s.respond_to?(:name) ? s.name : s.identity}.join(",")
         Maestro.log.debug msg
         write_output("#{msg}\n")
       end
@@ -464,7 +464,7 @@ module MaestroDev
         flavor_id = server_flavor_id(s) #s.respond_to?('flavor_id') ? s.flavor_id : nil
         create_record_with_fields("machine",
           ["name",         "type",   "instance_id", "public_ipv4",       "image_id", "flavor_id"],
-          [server_name(s), provider, s.id,          s.public_ip_address, image_id  , flavor_id])
+          [server_name(s), provider, s.identity, s.public_ip_address, image_id  , flavor_id])
       end
   
       def delete_server_on_master(id)
@@ -475,7 +475,7 @@ module MaestroDev
       # Some servers will expose a name attribute, but will return id - its up to them whether they support a
       # human readable name
       def server_name(s)
-        (s.respond_to?('name') && s.name) ? s.name : s.id
+        (s.respond_to?('name') && s.name) ? s.name : s.identity
       end
       
       # Get the image used to create a server
@@ -521,7 +521,7 @@ module MaestroDev
         servers.each do |server|
           raise ArgumentError, "Parameter is not a Fog::Compute::Server object, it is a #{server.class}" unless server.is_a?(Fog::Compute::Server)
     
-          server_meta_data = { 'id' => server.id, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
+          server_meta_data = { 'id' => server.identity, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
           ipv4 = server.public_ip_address
           server_meta_data['ipv4'] = ipv4 if ipv4
           context_servers << server_meta_data
@@ -532,7 +532,7 @@ module MaestroDev
       # save server ids in context for deprovisioning or other tasks
       # overwrite removes all previous server ids from the context
       def save_server_ids_in_context(servers, overwrite=true)
-        ids = servers.map {|s| s.id}
+        ids = servers.map {|s| s.identity}
         set_field("#{provider}_ids", ids.concat(get_field("#{provider}_ids") || []))
         set_field("cloud_ids", ids.concat(get_field("cloud_ids") || []))
       end
