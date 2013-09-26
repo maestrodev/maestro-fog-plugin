@@ -56,7 +56,6 @@ module MaestroDev
         if (public_key && public_key_path) 
           write_output("WARNING: public_key_path is ignored because public_key is defined\n")
         end
-        public_key_path = File.expand_path(public_key_path) if public_key_path
   
         msg = "Creating server '#{name}' from image #{image_id}"
         Maestro.log.info msg
