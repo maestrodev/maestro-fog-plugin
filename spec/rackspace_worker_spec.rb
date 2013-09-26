@@ -87,7 +87,7 @@ shared_examples "rackspace" do |version|
         # create 2 servers
         stubs = {}
         (1..2).each do |i|
-          s = connection.servers.create
+          s = connection.servers.create(:name => "server#{i}", :image_id => 1, :flavor_id => 1)
           s.wait_for { ready? }
           stubs[s.identity]=s
         end
