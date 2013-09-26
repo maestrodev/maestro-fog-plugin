@@ -82,7 +82,7 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
   describe 'validate_provision_fields' do
     context 'when fields are missing' do
       before { subject.stub(:required_fields => ['my_field']) }
-      it { expect { subject.provision }.to raise_error(MaestroDev::Plugin::ConfigError, "Not a valid fieldset, missing my_field") }
+      it { expect { subject.provision }.to raise_error(MaestroDev::Plugin::ConfigError, "Missing fields: my_field") }
     end
   end
 

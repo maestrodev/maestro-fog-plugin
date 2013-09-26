@@ -34,11 +34,11 @@ module MaestroDev
       end
   
       def validate_provision_fields
-        errors = []
+        missing_fields = []
         required_fields.each{|s|
-          errors << "missing #{s}" if get_field(s).nil? || get_field(s).empty?
+          missing_fields << s if get_field(s).nil? || get_field(s).empty?
         }
-        raise MaestroDev::Plugin::ConfigError, "Not a valid fieldset, #{errors.join("\n")}" unless errors.empty?
+        raise MaestroDev::Plugin::ConfigError, "Missing fields: #{missing_fields.join(", ")}" unless missing_fields.empty?
       end
   
       def provider
