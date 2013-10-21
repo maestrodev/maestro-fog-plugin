@@ -434,7 +434,9 @@ module MaestroDev
         validate_provision_fields
         connection = connect
   
-        id = get_field('id')
+        id = get_field('id') || (get_field("#{provider}_ids") || []).first
+        raise MaestroDev::Plugin::ConfigError, "Missing fields: id" if id.nil?
+
         server = connection.servers.get(id)
         log_output("#{provider} updating server #{id}: #{server.nil? ? 'not found' : 'found' }")
 

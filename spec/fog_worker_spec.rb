@@ -524,6 +524,23 @@ describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
         it { expect(server1.name).to eq(name) }
         it { expect(field('__context_outputs__')['servers'].length).to eq(1) }
       end
+
+      context 'when id is not provided should use the provider_ids field' do
+        let(:fields) {super().merge({
+          "id" => nil,
+          "test_ids" => [1,2,3]
+        })}
+        its(:error) { should be_nil }
+        it { expect(server1.name).to eq(name) }
+        it { expect(field('__context_outputs__')['servers'].length).to eq(1) }
+      end
+    end
+
+    context 'when id is not provided' do
+      let(:fields) {super().merge({
+        "id" => nil
+      })}
+      it { expect { subject.update }.to raise_error(MaestroDev::Plugin::ConfigError, "Missing fields: id") }
     end
 
     context 'when server does not respond to name' do
