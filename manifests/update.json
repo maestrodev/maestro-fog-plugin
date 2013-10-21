@@ -15,8 +15,8 @@
 
       /* common fields */
       "id": {
-          "description": "id of server to update",
-          "required": true, 
+          "description": "id of server to update, defaults to the first one in the context for this provider",
+          "required": false,
           "type": "String", 
           "value": null
       },
