@@ -75,10 +75,12 @@ module MaestroDev
           end
         end
         opts.each { |k,v| set_field(k.to_s, v) }
+
+        start = Time.now
         connection = Fog::Compute.new(opts.merge(:provider => provider))
 
-        Maestro.log.debug "Connected to #{provider}"
-        write_output("done\n")
+        Maestro.log.debug "Connected to #{provider} (#{Time.now - start}s)"
+        write_output("done (#{Time.now - start}s)\n")
         return connection
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
         raise MaestroDev::Plugin::PluginError, "Unable to connect to #{provider}: #{e}"
@@ -103,7 +105,8 @@ module MaestroDev
         create_server_on_master(s)
   
         wait_for_public_ip = get_field('wait_for_public_ip')
-  
+
+        start = Time.now
         unless wait_for_public_ip == false
           msg = "Waiting for server '#{s.name}' #{s.identity} to get a public ip"
           Maestro.log.debug msg
@@ -112,40 +115,43 @@ module MaestroDev
           begin
             s.wait_for { !public_ip_address.nil? and !public_ip_address.empty? }
           rescue Fog::Errors::TimeoutError => e
-            msg = "Server '#{s.name}' #{s.identity} failed to get a public ip"
+            msg = "Server '#{s.name}' #{s.identity} failed to get a public ip (#{Time.now - start}s)"
             Maestro.log.warn msg
-            write_output("failed\n")
+            write_output("failed (#{Time.now - start}s)\n")
             return nil
           end
         end
   
-        Maestro.log.debug "Server '#{s.name}' #{s.identity} is now accessible through ssh"
-        write_output("done\n")
+        Maestro.log.debug "Server '#{s.name}' #{s.identity} is now accessible through ssh (#{Time.now - start}s)"
+        write_output("done (#{Time.now - start}s)\n")
   
         # save some values in the workitem so they are accessible for deprovision and other tasks
         save_server_in_context([s])
   
         log_output("Server '#{s.name}' #{s.identity} started with public ip '#{s.public_ip_address}' and private ip '#{private_address(s)}'", :info)
   
+        start = Time.now
         msg = "Initial setup for server '#{s.name}' #{s.identity} on '#{s.public_ip_address}'"
         Maestro.log.debug msg
         write_output("#{msg}...")
         begin
           setup_server(s)
-          Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.identity} on '#{s.public_ip_address}'"
-          write_output("done\n")
+          Maestro.log.debug "Finished initial setup for server '#{s.name}' #{s.identity} on '#{s.public_ip_address}' (#{Time.now - start}s)"
+          write_output("done (#{Time.now - start}s)\n")
         rescue Net::SSH::AuthenticationFailed => e
-          log_output("Failed to setup server '#{s.name}' #{s.identity} on '#{s.public_ip_address}'. Authentication failed for user '#{s.username}'")
+          log_output("Failed to setup server '#{s.name}' #{s.identity} on '#{s.public_ip_address}' (#{Time.now - start}s). Authentication failed for user '#{s.username}'")
           return nil
         end
   
         # provision through ssh
+        start = Time.now
         server_errors = provision_execute(s, commands)
         unless server_errors.empty?
           log_output("Server '#{s.name}' #{s.identity} failed to provision", :info)
           write_output(server_errors.join("\n"))
           return nil
         end
+        log_output("Server '#{s.name}' #{s.identity} provisioned in #{Time.now-start}s", :info)
   
         return s
       end
@@ -180,7 +186,7 @@ module MaestroDev
         ssh_options = {}
         ssh_options[:password] = ssh_password if (ssh_password and !ssh_password.empty?)
         log_output("Running SSH Commands On New Machine #{host} - #{commands.join(", ")}", :info)
-  
+
         for i in 1..10
           begin
             responses = s.ssh(commands, ssh_options)
@@ -259,10 +265,11 @@ module MaestroDev
         name = get_field('name')
         if !name.nil? and number_of_vms==1
           msg = "Looking for existing vms with name '#{name}'"
+          start = Time.now
           Maestro.log.debug msg
           write_output "#{msg}..."
           existing_names = connection.servers.map {|s| s.name}
-          write_output "done\n"
+          write_output "done (#{Time.now - start}s)\n"
         end
         # some providers require name, so let's assign a random one if not set to be sure
         # guarantee unique name if name is specified but taken already or launching more than 1 vm
@@ -273,17 +280,18 @@ module MaestroDev
           server_name = randomize_name ? random_name(name) : name
   
           log_output("Creating server '#{server_name}'")
+          start = Time.now
   
           # create the server in the cloud provider
           s = create_server(connection, server_name)
 
           if s.nil? && get_field("__error__").nil?
-            log_output("Failed to create server '#{server_name}'", :error)
+            log_output("Failed to create server '#{server_name}' (#{Time.now - start}s)", :error)
           end
           next if s.nil?
 
           populate_meta([s], 'new')
-          log_output("Created server '#{s.name}' with id '#{s.identity}'", :info)
+          log_output("Created server '#{s.name}' with id '#{s.identity}' (#{Time.now - start}s)", :info)
   
           s.username = username
           s.private_key = private_key
@@ -302,10 +310,11 @@ module MaestroDev
         start = Time.now
         last_log = start
         timeout = get_field('timeout') || Fog.timeout
+        provisioning_time = 0
         while !servers.empty?
           now = Time.now
           server_names = servers.map{|s| s.name}.join(", ")
-          duration = now - start
+          duration = now - start - provisioning_time
           if duration > timeout
             log_output("Servers timed out (#{duration} seconds) before being ready: #{server_names}", :warn)
             break
@@ -324,16 +333,16 @@ module MaestroDev
           else
             if s.error?
               state = s.respond_to?('state') ? " with state: #{s.state}" : ""
-              Maestro.log.warn "Server '#{s.name}' #{s.identity} failed to start#{state}"
-              write_output("failed#{state}\n")
+              Maestro.log.warn "Server '#{s.name}' #{s.identity} failed to start#{state} (#{Time.now - start}s)"
+              write_output("failed#{state} (#{Time.now - start}s)\n")
               servers.delete(s)
             else
-              log_output("Server '#{s.name}' #{s.identity} is ready")
+              log_output("Server '#{s.name}' #{s.identity} is ready (#{Time.now - start}s)")
               servers_ready << servers.delete(s)
               # wait for servers to have public ip and run commands. Don't add provisioning time to timeout
               provision_start = Time.now
               servers_provisioned << on_ready(s, commands)
-              start = start + (Time.now - provision_start)
+              provisioning_time += Time.now - provision_start
             end
           end
         end
@@ -376,21 +385,28 @@ module MaestroDev
         connection = connect(true)
   
         ids.each do |id|
-          log_output("Deprovisioning VM with id/name '#{id}'", :info)
+          msg = "Deprovisioning VM with id/name '#{id}'"
+          Maestro.log.info msg
+          write_output("#{msg}...")
+
+          start = Time.now
           begin
             s = connection.servers.get(id) || connection.servers.find{|server| server_name(server) == id }
   
             if s.nil?
-              log_output("VM with id/name '#{id}' not found, ignoring", :warn)
+              Maestro.log.warn("VM with id/name '#{id}' not found, ignoring")
+              write_output("not found, ignoring\n")
               # server was already destroyed in provider, delete anyway in master record by id
               # we don't want to delete in master by name as it is dangerous, a new vm could be started with same name
               delete_server_on_master(id)
             else
               s.destroy
               delete_server_on_master(s.identity)
+              write_output("done (#{Time.now - start}s)\n")
             end
           rescue Exception => e
-            log("Error destroying instance with id/name '#{id}'", e)
+            write_output("failed: #{e.message}\n")
+            log("Error destroying instance with id/name '#{id}' (#{Time.now - start}s)", e)
           end
         end
   
