@@ -35,7 +35,7 @@
       "private_key_path": {
           "required": false, 
           "type": "String", 
-          "value": "/var/local/maestro-agent/.ssh/id_rsa",
+          "value": "~/.ssh/id_rsa",
           "description": "ssh private key path in the agent to use to connect to the server (instead of private_key content)"
       }, 
       "ssh_commands": {
