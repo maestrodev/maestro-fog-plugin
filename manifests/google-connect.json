@@ -27,7 +27,12 @@
       "options": {
         "project": "String",
         "client_email": "String",
-        "key_location": "String"
+        "key_location": "String",
+        "image_name": "String",
+        "machine_type": "String",
+        "zone_name": "String",
+        "public_key": "String",
+        "public_key_path": "String"
       }
     }
   ]
