@@ -1,4 +1,7 @@
 # maestro-fog-plugin
+
+[![Code Climate](https://codeclimate.com/github/maestrodev/maestro-fog-plugin.png)](https://codeclimate.com/github/maestrodev/maestro-fog-plugin)
+
 [Maestro](http://www.maestrodev.com) plugin providing tasks to provision instances with [fog](http://fog.io/). This plugin is a Ruby-based deployable that gets delivered as a ZIP file.
 
 Currently supporting
