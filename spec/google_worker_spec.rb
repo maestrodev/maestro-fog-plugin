@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'google_worker'
 
-describe MaestroDev::FogPlugin::GoogleWorker, :provider => "google", :disabled => true do # needs fog 1.16.0+
+describe MaestroDev::Plugin::GoogleWorker, :provider => "google", :disabled => true do # needs fog 1.16.0+
 
   let(:connection) { Fog::Compute.new(
     :provider => "google",

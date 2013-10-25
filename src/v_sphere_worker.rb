@@ -19,7 +19,7 @@ module Fog
 end
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class VSphereWorker < FogWorker
   
       def provider

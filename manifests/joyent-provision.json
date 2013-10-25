@@ -1,7 +1,7 @@
 {
   "name": "joyent provision",
   "description": "Provision servers on a Joyent cloud",
-  "class": "MaestroDev::FogPlugin::JoyentWorker",
+  "class": "MaestroDev::Plugin::JoyentWorker",
   "task": {
     "command": "/joyent/provision",
     "inputs": {

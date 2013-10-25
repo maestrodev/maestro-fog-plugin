@@ -1,7 +1,7 @@
 {
   "name": "AWS provision",
   "description": "Provision servers on Amazon Web Services EC2",
-  "class": "MaestroDev::FogPlugin::AwsWorker",
+  "class": "MaestroDev::Plugin::AwsWorker",
   "task": {
     "command": "/aws/provision",
     "inputs": {

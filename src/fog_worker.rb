@@ -13,7 +13,7 @@ module Fog
 end
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class FogWorker < Maestro::MaestroWorker
   
       SERVERS_CONTEXT_OUTPUT_KEY = 'servers'
@@ -38,7 +38,7 @@ module MaestroDev
         required_fields.each{|s|
           missing_fields << s if get_field(s).nil? || get_field(s).empty?
         }
-        raise MaestroDev::Plugin::ConfigError, "Missing fields: #{missing_fields.join(", ")}" unless missing_fields.empty?
+        raise ConfigError, "Missing fields: #{missing_fields.join(", ")}" unless missing_fields.empty?
       end
   
       def provider
@@ -83,7 +83,7 @@ module MaestroDev
         write_output("done (#{Time.now - start}s)\n")
         return connection
       rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
-        raise MaestroDev::Plugin::PluginError, "Unable to connect to #{provider}: #{e}"
+        raise PluginError, "Unable to connect to #{provider}: #{e}"
       end
   
       # character to use to split names with random_name
@@ -425,7 +425,7 @@ module MaestroDev
           if s.respond_to?(:name)
             s.name =~ /#{name}/
           else
-            raise MaestroDev::Plugin::PluginError, "Provider #{provider} does not support finding servers by name"
+            raise PluginError, "Provider #{provider} does not support finding servers by name"
           end
         end
 
@@ -451,7 +451,7 @@ module MaestroDev
         connection = connect
   
         id = get_field('id') || (get_field("#{provider}_ids") || []).first
-        raise MaestroDev::Plugin::ConfigError, "Missing fields: id" if id.nil?
+        raise ConfigError, "Missing fields: id" if id.nil?
 
         server = connection.servers.get(id)
         log_output("#{provider} updating server #{id}: #{server.nil? ? 'not found' : 'found' }")
@@ -467,7 +467,7 @@ module MaestroDev
           if server.respond_to?(k)
             server.send("#{k}=",v)
           else
-            raise MaestroDev::Plugin::PluginError, "Provider #{provider} does not support #{k} attribute"
+            raise PluginError, "Provider #{provider} does not support #{k} attribute"
           end
         end
         server.update unless new_attributes.empty?

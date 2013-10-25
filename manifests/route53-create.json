@@ -1,7 +1,7 @@
 {
   "name" : "Route53 create record",
   "description" : "Create a new DNS entry in Amazon Web Services Route53",
-  "class": "MaestroDev::FogPlugin::DnsWorker",
+  "class": "MaestroDev::Plugin::DnsWorker",
   "task":{
     "command" : "/dns/create",
     "inputs" : {

@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'v_sphere_worker'
 
-describe MaestroDev::FogPlugin::VSphereWorker, :provider => "vsphere" do
+describe MaestroDev::Plugin::VSphereWorker, :provider => "vsphere" do
 
   let(:connection) {
     Fog::Compute.new(

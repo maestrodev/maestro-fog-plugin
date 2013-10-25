@@ -20,7 +20,7 @@ end
 
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class OpenstackWorker < FogWorker
   
       def provider

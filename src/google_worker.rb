@@ -16,7 +16,7 @@ module Fog
 end
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class GoogleWorker < FogWorker
   
       def provider
@@ -29,7 +29,7 @@ module MaestroDev
   
       def connect_options
         key_location = File.expand_path(get_field('key_location'))
-        raise MaestroDev::Plugin::ConfigError, "Key location not found: #{key_location}" unless File.exist? key_location
+        raise ConfigError, "Key location not found: #{key_location}" unless File.exist? key_location
         {
           :google_project => get_field('project'),
           :google_client_email => get_field('client_email'),

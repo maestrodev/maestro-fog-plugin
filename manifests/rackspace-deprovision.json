@@ -1,7 +1,7 @@
 {
   "name": "rackspace deprovision",
   "description": "Deprovision servers in Rackspace. Deprovisions all servers started in a previous provision tasks.",
-  "class": "MaestroDev::FogPlugin::RackspaceWorker",
+  "class": "MaestroDev::Plugin::RackspaceWorker",
   "task": {
     "inputs": {},
     "command": "/rackspace/deprovision",

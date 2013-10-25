@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'maestro_plugin', '>= 0.0.5'
+gem 'maestro_plugin', '>= 0.0.17'
 
 #dependencies
 gem "fog", ">=1.15.0", "<1.16.0" # 1.16.0 has a dependency that doesn't work on jruby

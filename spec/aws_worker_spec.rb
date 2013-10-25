@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'aws_worker'
 
-describe MaestroDev::FogPlugin::AwsWorker, :provider => "aws" do
+describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
 
   let(:connection) {
     Fog::Compute.new(

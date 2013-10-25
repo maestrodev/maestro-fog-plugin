@@ -4,10 +4,10 @@ require 'spec_helper'
 require 'fog_worker'
 require 'fog/compute/models/server'
 
-describe MaestroDev::FogPlugin::FogWorker, :provider => "test" do
+describe MaestroDev::Plugin::FogWorker, :provider => "test" do
 
   # a 'test' provider
-  class TestWorker < MaestroDev::FogPlugin::FogWorker
+  class TestWorker < MaestroDev::Plugin::FogWorker
     def provider
       "test"
     end

@@ -1,7 +1,7 @@
 {
   "name": "rackspace provision",
   "description": "Provision servers in Rackspace",
-  "class": "MaestroDev::FogPlugin::RackspaceWorker",
+  "class": "MaestroDev::Plugin::RackspaceWorker",
   "task": {
     "command": "/rackspace/provision",
     "inputs": {

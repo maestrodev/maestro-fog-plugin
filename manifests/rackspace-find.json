@@ -1,7 +1,7 @@
 {
   "name": "rackspace find",
   "description": "Find servers on Rackspace and add their ids and ips to the composition context",
-  "class": "MaestroDev::FogPlugin::RackspaceWorker",
+  "class": "MaestroDev::Plugin::RackspaceWorker",
   "task": {
     "command": "/rackspace/find",
     "inputs": {

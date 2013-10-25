@@ -3,7 +3,7 @@ require 'fog'
 require 'fog/core/model'
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class DnsWorker < Maestro::MaestroWorker
     
       def get_timer_from_soa(soa)

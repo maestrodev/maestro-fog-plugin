@@ -1,7 +1,7 @@
 {
   "name" : "vsphere deprovision",
   "description" : "Deprovision servers with VMWare vSphere. Deprovisions all servers started in a previous provision task.",
-  "class": "MaestroDev::FogPlugin::VSphereWorker",
+  "class": "MaestroDev::Plugin::VSphereWorker",
   "dependencies":[
     {
       "name" : "rbvmomi",

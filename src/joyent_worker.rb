@@ -16,7 +16,7 @@ module Fog
 end
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class JoyentWorker < FogWorker
   
       def provider

@@ -1,7 +1,7 @@
 {
   "name": "google compute engine provision",
   "description": "Provision servers in Google Compute Engine",
-  "class": "MaestroDev::FogPlugin::GoogleWorker",
+  "class": "MaestroDev::Plugin::GoogleWorker",
   "task": {
     "command": "/google/provision",
     "inputs": {

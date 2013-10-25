@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'openstack_worker'
 
-describe MaestroDev::FogPlugin::OpenstackWorker, :provider => "openstack" do
+describe MaestroDev::Plugin::OpenstackWorker, :provider => "openstack" do
 
   def connect
     keystone = Fog::Identity.new(

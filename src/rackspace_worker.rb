@@ -17,7 +17,7 @@ end
 
 
 module MaestroDev
-  module FogPlugin
+  module Plugin
     class RackspaceWorker < FogWorker
   
       def provider
