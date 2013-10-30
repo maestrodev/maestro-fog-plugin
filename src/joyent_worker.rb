@@ -39,7 +39,7 @@ module MaestroDev
         return opts
       end
   
-      def create_server(connection, name)
+      def create_server(connection, name, options={})
         package = get_field('package')
         dataset = get_field('dataset')
   

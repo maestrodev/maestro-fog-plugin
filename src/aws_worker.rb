@@ -36,7 +36,7 @@ module MaestroDev
         return opts
       end
   
-      def create_server(connection, name)
+      def create_server(connection, name, options={})
         availability_zone = get_field('availability_zone')
         image_id = get_field('image_id')
         flavor_id = get_field('flavor_id')

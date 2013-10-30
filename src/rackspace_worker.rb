@@ -46,11 +46,10 @@ module MaestroDev
         return opts
       end
   
-      def create_server(connection, name)
+      def create_server(connection, name, options={})
         image_id = get_field('image_id')
         flavor_id = get_field('flavor_id')
   
-        ssh_user = get_field('ssh_user') || "root"
         public_key = get_field('public_key')
         public_key_path = get_field('public_key_path')
         if (public_key && public_key_path) 
@@ -66,7 +65,7 @@ module MaestroDev
             :name => name,
             :image_id => image_id,
             :flavor_id => flavor_id,
-            :username => ssh_user,
+            :username => options[:username],
             :public_key => public_key,
             :public_key_path => public_key_path
           }

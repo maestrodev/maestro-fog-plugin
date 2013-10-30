@@ -37,7 +37,7 @@ module MaestroDev
         }
       end
   
-      def create_server(connection, name)
+      def create_server(connection, name, options={})
         image_name = get_field('image_name', "centos-6-v20130813")
         machine_type = get_field('machine_type', "n1-standard-1")
         zone_name = get_field('zone_name', "us-central1-a")
@@ -46,8 +46,7 @@ module MaestroDev
         if (public_key && public_key_path) 
           write_output("WARNING: public_key_path is ignored because public_key is defined\n")
         end
-        ssh_user = get_field('ssh_user', 'maestro')
-        write_output("WARNING: Google images have root ssh disabled by default\n") if ssh_user == "root"
+        write_output("WARNING: Google images have root ssh disabled by default\n") if options[:username] == "root"
 
         name_msg = name.nil? ? "" : "'#{name}' "
         log_output("Creating server #{name_msg}from image #{image_name}/#{machine_type} in #{zone_name}", :info)
@@ -59,7 +58,7 @@ module MaestroDev
           :zone_name => zone_name,
           :public_key => public_key,
           :public_key_path => public_key_path,
-          :username => ssh_user
+          :username => options[:username]
         }
 
         begin

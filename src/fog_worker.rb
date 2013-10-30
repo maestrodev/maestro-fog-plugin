@@ -50,7 +50,7 @@ module MaestroDev
       end
   
       # create and return the server object. Don't wait for it to be ready
-      def create_server(connection, name)
+      def create_server(connection, name, options={})
         raise "Need to extend create_server method!"
       end
   
@@ -283,7 +283,7 @@ module MaestroDev
           start = Time.now
   
           # create the server in the cloud provider
-          s = create_server(connection, server_name)
+          s = create_server(connection, server_name, {:username => username})
 
           if s.nil? && get_field("__error__").nil?
             log_output("Failed to create server '#{server_name}' (#{Time.now - start}s)", :error)

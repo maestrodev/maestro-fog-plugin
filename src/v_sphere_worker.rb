@@ -42,7 +42,7 @@ module MaestroDev
         "_"
       end
   
-      def create_server(connection, name)
+      def create_server(connection, name, options={})
         datacenter = get_field('datacenter')
         template_path = get_field('template_path')
         dest_folder = get_field('destination_folder')

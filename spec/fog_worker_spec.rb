@@ -101,7 +101,7 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
 
     context 'when provisioning a server' do
       before do
-        subject.should_receive(:create_server).with(connection, "test").and_return(mock_server)
+        subject.should_receive(:create_server).with(connection, "test", {:username => ssh_user}).and_return(mock_server)
         subject.provision
       end
 
@@ -125,7 +125,7 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
         server1 = mock_server(1, "test 1")
         server2 = mock_server(2, "test 2")
         server3 = mock_server(3, "test 3")
-        subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(server1, server2, server3)
+        subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/, {:username => ssh_user}).and_return(server1, server2, server3)
         subject.provision
       end
 
@@ -269,7 +269,7 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
     context 'when name is not provided should provision a machine with a random name' do
       let(:fields) { super().reject{ |k, v| k == 'name' } }
       before do
-        subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(mock_server)
+        subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/, {:username => ssh_user}).and_return(mock_server)
         subject.provision
       end
       its(:error) { should be_nil }
@@ -279,7 +279,7 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
       let(:fields) { super().merge({"name" => nil, "number_of_vms" => 3}) }
 
       before do
-        subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/).and_return(
+        subject.should_receive(:create_server).with(connection, /^maestro-[a-z]{5}$/, {:username => ssh_user}).and_return(
           mock_server(1), mock_server(2), mock_server(3))
         subject.provision
       end
@@ -293,7 +293,7 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
       let(:fields) { super().merge({"number_of_vms" => 3}) }
 
       before do
-        subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/).and_return(
+        subject.should_receive(:create_server).with(connection, /^test-[a-z]{5}$/, {:username => ssh_user}).and_return(
           mock_server(1), mock_server(2), mock_server(3))
         subject.provision
       end
