@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'google_worker'
 
-describe MaestroDev::Plugin::GoogleWorker, :provider => "google", :disabled => true do # needs fog 1.16.0+
+describe MaestroDev::Plugin::GoogleWorker, :provider => "google" do
 
   let(:connection) { Fog::Compute.new(
     :provider => "google",
@@ -70,7 +70,7 @@ describe MaestroDev::Plugin::GoogleWorker, :provider => "google", :disabled => t
       end
       its(:error) { should be_nil }
       it { expect(subject.workitem[Maestro::MaestroWorker::OUTPUT_META]).to match(
-        %r[Deprovisioning VM with id/name 'server1'\nDeprovisioning VM with id/name 'server2'\nMaestro google deprovision complete!]) }
+        %r[Deprovisioning VM with id/name 'server1'...done (.*)\nDeprovisioning VM with id/name 'server2'...done (.*)\nMaestro google deprovision complete!]) }
     end
   end
 end
