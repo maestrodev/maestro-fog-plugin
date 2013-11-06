@@ -184,8 +184,18 @@ module MaestroDev
   
         ssh_password = get_field('ssh_password')
         ssh_options = {}
-        ssh_options[:password] = ssh_password if (ssh_password and !ssh_password.empty?)
-        log_output("Running SSH Commands On New Machine #{host} - #{commands.join(", ")}", :info)
+        msg = "Running SSH Commands On New Machine #{s.username}@#{host}"
+        msg_options = {}
+        if (ssh_password and !ssh_password.empty?)
+          ssh_options[:password] = ssh_password
+          msg_options[:password] = "yes"
+        end
+        if s.private_key_path
+          msg_options[:private_key_path] = s.private_key_path
+        else
+          msg_options[:private_key] = s.private_key ? "yes" : "no"
+        end
+        log_output("#{msg} using #{msg_options}: #{commands.join(", ")}", :info)
 
         for i in 1..10
           begin
