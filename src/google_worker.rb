@@ -56,6 +56,7 @@ module MaestroDev
           :image_name => image_name,
           :machine_type => machine_type,
           :zone_name => zone_name,
+          :tags => get_field('tags'),
           :public_key => public_key,
           :public_key_path => public_key_path,
           :username => options[:username]

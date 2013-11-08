@@ -23,6 +23,12 @@
         "type": "String",
         "value": "us-central1-a"
       },
+      "tags": {
+        "description": "Tags associated with the instance",
+        "required": true,
+        "type": "Array",
+        "value": []
+      },
       "public_key": {
         "description": "public key content to copy to the server as authorized key",
         "required": false,
