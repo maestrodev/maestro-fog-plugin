@@ -188,13 +188,10 @@ module MaestroDev
         msg_options = {}
         if (ssh_password and !ssh_password.empty?)
           ssh_options[:password] = ssh_password
-          msg_options[:password] = "yes"
+          msg_options[:password] = "*" * ssh_password.size
         end
-        if s.private_key_path
-          msg_options[:private_key_path] = s.private_key_path
-        else
-          msg_options[:private_key] = s.private_key ? "yes" : "no"
-        end
+        msg_options[:private_key_path] = s.private_key_path if s.private_key_path
+        msg_options[:private_key] = mask_private_key(s.private_key) if s.private_key # show only last 5 chars
         log_output("#{msg} using #{msg_options}: #{commands.join(", ")}", :info)
 
         for i in 1..10
@@ -220,8 +217,7 @@ module MaestroDev
             break
           rescue Errno::EHOSTUNREACH, Timeout::Error, Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::SSH::Disconnect => e
             log_output("[#{host}] Try #{i} - failed to connect: #{e}, retrying...", :info)
-            i = i+1
-            if i > 10
+            if i+1 > 10
               msg = "[#{host}] Could not connect to remote machine after 10 attempts"
               errors << msg
               log_output(msg, :warn)
@@ -230,9 +226,15 @@ module MaestroDev
               next
             end
           rescue Net::SSH::AuthenticationFailed => e
-            msg = "[#{host}] Could not connect to remote machine, authentication failed for user #{e.message}"
-            errors << msg
-            log_output(msg, :warn)
+            log_output("[#{host}] Try #{i} - failed to connect: authentication failed for user #{e.message}, retrying...", :info)
+            if i+1 > 10
+              msg = "[#{host}] Could not connect to remote machine after 10 attempts, authentication failed for user #{e.message}"
+              errors << msg
+              log_output(msg, :warn)
+            else
+              sleep 5
+              next
+            end
           end
         end
         return errors
@@ -592,6 +594,11 @@ module MaestroDev
         end
 
         values.each {|k,v| set_field(k, v)}
+      end
+
+      def mask_private_key(private_key)
+        mask_end = [private_key.size-5,8].max # mask no less than 8 chars
+        ("*" * mask_end) + (private_key[mask_end..-1] || "") # show only last 5 chars
       end
 
     end

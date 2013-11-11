@@ -555,4 +555,12 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
       it { expect { subject.update }.to raise_error(MaestroDev::Plugin::PluginError, "Provider test does not support name attribute") }
     end
   end
+
+  describe :mask_private_key do
+    it { expect(subject.send(:mask_private_key,"")).to eq("********") }
+    it { expect(subject.send(:mask_private_key,"qwert")).to eq("********") }
+    it { expect(subject.send(:mask_private_key,"qwertyuiop")).to eq("********op") }
+    it { expect(subject.send(:mask_private_key,"qwertyuiopasdfghjklzxcvbnm")).to eq("*********************cvbnm") }
+  end
+
 end
