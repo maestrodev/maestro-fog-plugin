@@ -87,7 +87,7 @@ module MaestroDev
       end
       
       def modify_record(dns, zone)
-        write_output("\nModifying Record Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = get_field('dns_type')...")
+        write_output("\nModifying Record Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = #{get_field('dns_type')}...")
         record = zone.records.all.find{|record| record.name == get_field('dns_name')}
             
         if(record)
