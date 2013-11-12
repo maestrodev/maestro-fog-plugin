@@ -88,7 +88,7 @@ module MaestroDev
       
       def modify_record(dns, zone)
         write_output("\nModifying Record Name = #{get_field('dns_name')}, Value = #{get_field('dns_value')}, Type = #{get_field('dns_type')}...")
-        record = zone.records.all!.find{|record| record.name == get_field('dns_name')}
+        record = zone.records.get(get_field('dns_name'))
             
         if(record)
           record.modify({:value => get_field('dns_value'), :type => get_field('dns_type')})
