@@ -1,107 +1,123 @@
 require 'spec_helper'
 require 'dns_worker'
 
-
 describe MaestroDev::Plugin::DnsWorker do
-  it "should create a new dns entry in route53" do
-    subject.should_receive(:create_record)
-    subject.should_receive(:connect_dns)
-    subject.should_receive(:find_zone)
-    
-    fields = {
-            "access_key_id" => "hello",
-            "secret_access_key" => "hello",
-            "dns_type" => "A",
-            "dns_name" => "newhost",
-            "dns_value" => "127.0.0.1",
-            "dns_zone" => "maestrodev.net."
-          }
-    subject.stub(:workitem => {"fields" => fields})
-    subject.create
-  end
-  
-  it "should modify an exisiting dns entry in route53" do
-    subject.should_receive(:modify_record)
-    subject.should_receive(:connect_dns)
-    subject.should_receive(:find_zone)
-    
-    fields = {
-            "access_key_id" => "hello",
-            "secret_access_key" => "hello",
-            "dns_name" => "newhost",
-            "dns_value" => "192.168.1.1",
-            "dns_zone" => "maestrodev.net."
-          }
-    subject.stub(:workitem => {"fields" => fields})
-    subject.modify
-  end
-  
-  it "should parse the timer from a soa record and increment it" do
-    soa = "ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. 2013011501 7200 900 86400 3600"
 
-    timer = subject.get_timer_from_soa(soa)
-    
-    timer.should eql("2013011501")
-    
-    new_timer = subject.increment_timer_from_soa(timer)
-    
-    new_timer.should eql(Time.now.strftime("%Y%m%d")+ "01")
-    
-    new_timer = subject.increment_timer_from_soa(new_timer)
-    new_timer.should eql(Time.now.strftime("%Y%m%d")+ "02")
-    
-    3.upto(9) do |number|
-      new_timer = subject.increment_timer_from_soa(new_timer)
-      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "0#{number}")
-    end
-    
-    10.upto(99) do |number|
-      new_timer = subject.increment_timer_from_soa(new_timer)
-      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "#{number}")
-    end
-    
-    old_timer = new_timer
-    100.upto(101) do |number|
-      new_timer = subject.increment_timer_from_soa(new_timer)
-      new_timer.should eql(old_timer)
-    end
-    
-    new_soa = subject.replace_timer_in_soa(soa, new_timer)
-    new_soa.should eql("ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. #{new_timer} 7200 900 86400 3600")
+  let(:record) {{ :name => "newhost2.maestrodev.net.", :type => "A", :value => "127.0.0.1" }}
+  let(:fields) {{
+    "access_key_id" => "hello",
+    "secret_access_key" => "hello",
+    "dns_name" => record[:name],
+    "dns_value" => record[:value],
+    "dns_zone" => zone,
+    "dns_type" => record[:type]
+  }}
+  let(:zone) { "maestrodev.net." }
+  let(:connection) do
+    Fog::DNS.new({
+      :provider               => 'AWS',
+      :aws_access_key_id      => 'hello',
+      :aws_secret_access_key  => 'hello'})
+  end
+
+  before do
+    connection.reset_data
+    subject.stub(:workitem => {"fields" => fields}, :connect_dns => connection)
+    connection.zones.create(:domain => zone)
+  end
+
+  context "when creating a new entry" do
+    before { subject.create }
+    its(:output) { should match(/Created$/) }
+    it { connection.zones.size.should == 1 }
+    it { connection.zones.first.records.size.should == 1 }
+    it { connection.zones.first.records.first.name.should eq(record[:name]) }
+    it { connection.zones.first.records.first.type.should eq(record[:type]) }
+    it { connection.zones.first.records.first.value.should eq([record[:value]]) }
   end
   
-  
-  it "should parse the timer from a soa record and increment it if it is only an increment" do
-    soa = "ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. 1 7200 900 86400 3600"
+  context "when modifying an existing entry" do
+    let(:fields) { super().merge({"dns_value" => "192.168.1.1"}) }
+    before do
+      connection.zones.first.records.new(record).save
+      subject.modify
+    end
+    its(:output) { should match(/Updated$/) }
+    it { connection.zones.size.should == 1 }
+    it { connection.zones.first.records.size.should == 1 }
+    it { connection.zones.first.records.first.name.should eq(record[:name]) }
+    it { connection.zones.first.records.first.type.should eq(record[:type]) }
+    it { connection.zones.first.records.first.value.should eq(["192.168.1.1"]) }
+  end
 
-    timer = subject.get_timer_from_soa(soa)
-    
-    timer.should eql("1")
-    
-    new_timer = subject.increment_timer_from_soa(timer)
-    
-    new_timer.should eql(Time.now.strftime("%Y%m%d")+ "01")
-    
-    new_timer = subject.increment_timer_from_soa(new_timer)
-    new_timer.should eql(Time.now.strftime("%Y%m%d")+ "02")
-    
-    3.upto(9) do |number|
+  describe :timer do
+    it "should parse the timer from a soa record and increment it" do
+      soa = "ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. 2013011501 7200 900 86400 3600"
+
+      timer = subject.get_timer_from_soa(soa)
+      
+      timer.should eql("2013011501")
+      
+      new_timer = subject.increment_timer_from_soa(timer)
+      
+      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "01")
+      
       new_timer = subject.increment_timer_from_soa(new_timer)
-      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "0#{number}")
+      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "02")
+      
+      3.upto(9) do |number|
+        new_timer = subject.increment_timer_from_soa(new_timer)
+        new_timer.should eql(Time.now.strftime("%Y%m%d")+ "0#{number}")
+      end
+      
+      10.upto(99) do |number|
+        new_timer = subject.increment_timer_from_soa(new_timer)
+        new_timer.should eql(Time.now.strftime("%Y%m%d")+ "#{number}")
+      end
+      
+      old_timer = new_timer
+      100.upto(101) do |number|
+        new_timer = subject.increment_timer_from_soa(new_timer)
+        new_timer.should eql(old_timer)
+      end
+      
+      new_soa = subject.replace_timer_in_soa(soa, new_timer)
+      new_soa.should eql("ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. #{new_timer} 7200 900 86400 3600")
     end
     
-    10.upto(99) do |number|
-      new_timer = subject.increment_timer_from_soa(new_timer)
-      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "#{number}")
-    end
     
-    old_timer = new_timer
-    100.upto(101) do |number|
+    it "should parse the timer from a soa record and increment it if it is only an increment" do
+      soa = "ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. 1 7200 900 86400 3600"
+
+      timer = subject.get_timer_from_soa(soa)
+      
+      timer.should eql("1")
+      
+      new_timer = subject.increment_timer_from_soa(timer)
+      
+      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "01")
+      
       new_timer = subject.increment_timer_from_soa(new_timer)
-      new_timer.should eql(old_timer)
+      new_timer.should eql(Time.now.strftime("%Y%m%d")+ "02")
+      
+      3.upto(9) do |number|
+        new_timer = subject.increment_timer_from_soa(new_timer)
+        new_timer.should eql(Time.now.strftime("%Y%m%d")+ "0#{number}")
+      end
+      
+      10.upto(99) do |number|
+        new_timer = subject.increment_timer_from_soa(new_timer)
+        new_timer.should eql(Time.now.strftime("%Y%m%d")+ "#{number}")
+      end
+      
+      old_timer = new_timer
+      100.upto(101) do |number|
+        new_timer = subject.increment_timer_from_soa(new_timer)
+        new_timer.should eql(old_timer)
+      end
+      
+      new_soa = subject.replace_timer_in_soa(soa, new_timer)
+      new_soa.should eql("ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. #{new_timer} 7200 900 86400 3600")
     end
-    
-    new_soa = subject.replace_timer_in_soa(soa, new_timer)
-    new_soa.should eql("ns-1613.awsdns-09.co.uk. awsdns-hostmaster.amazon.com. #{new_timer} 7200 900 86400 3600")
   end
 end

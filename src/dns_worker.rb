@@ -47,7 +47,7 @@ module MaestroDev
       end
     
       def connect_dns
-        dns = Fog::DNS.new({
+        Fog::DNS.new({
           :provider               => 'AWS',
           :aws_access_key_id      => get_field('access_key_id'),
           :aws_secret_access_key  => get_field('secret_access_key')
