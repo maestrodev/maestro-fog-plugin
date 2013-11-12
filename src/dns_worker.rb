@@ -56,7 +56,7 @@ module MaestroDev
     
       def find_zone(dns, zone_name)
         write_output("Searching For Zone #{zone_name}... ")
-        zone = dns.zones.all!.find{|z| z.domain == zone_name}
+        zone = dns.zones.all.find{|z| z.domain == zone_name}
         if(zone)
           write_output("Found")
         else
