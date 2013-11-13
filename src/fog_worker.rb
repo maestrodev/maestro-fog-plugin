@@ -191,7 +191,7 @@ module MaestroDev
           msg_options[:password] = "*" * ssh_password.size
         end
         msg_options[:private_key_path] = s.private_key_path if s.private_key_path
-        msg_options[:private_key] = mask_private_key(s.private_key) if s.private_key # show only last 5 chars
+        msg_options[:private_key] = mask_private_key(s.private_key.strip) if s.private_key # show only last 5 chars
         log_output("#{msg} using #{msg_options}: #{commands.join(", ")}", :info)
 
         for i in 1..10
@@ -598,7 +598,8 @@ module MaestroDev
 
       def mask_private_key(private_key)
         mask_end = [private_key.size-5,8].max # mask no less than 8 chars
-        ("*" * mask_end) + (private_key[mask_end..-1] || "") # show only last 5 chars
+        mask = private_key.size > 8 ? "..." : ("*" * 8)
+        mask + (private_key[mask_end..-1] || "") # show only last 5 chars
       end
 
     end
