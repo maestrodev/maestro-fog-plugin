@@ -3,7 +3,7 @@ require 'dns_worker'
 
 describe MaestroDev::Plugin::DnsWorker do
 
-  let(:record) {{ :name => "newhost2.maestrodev.net.", :type => "A", :value => "127.0.0.1" }}
+  let(:record) {{ :name => "newhost2.maestrodev.net.", :type => "A", :value => ["127.0.0.1"], :ttl => "3600" }}
   let(:fields) {{
     "access_key_id" => "hello",
     "secret_access_key" => "hello",
@@ -27,27 +27,33 @@ describe MaestroDev::Plugin::DnsWorker do
   end
 
   context "when creating a new entry" do
-    before { subject.create }
-    its(:output) { should match(/Created$/) }
+    before do
+      expect_any_instance_of(Fog::DNS::AWS::Record).to receive(:reload).at_least(2).times.and_call_original
+      @record = subject.create
+    end
+    its(:output) { should match(/Created \(.*s\)$/) }
+    its(:output) { should_not match(/Failed|failed/) }
+    its(:error) { should be_nil }
     it { connection.zones.size.should == 1 }
     it { connection.zones.first.records.size.should == 1 }
-    it { connection.zones.first.records.first.name.should eq(record[:name]) }
-    it { connection.zones.first.records.first.type.should eq(record[:type]) }
-    it { connection.zones.first.records.first.value.should eq([record[:value]]) }
+    it { connection.zones.first.records.first.attributes.should eq(record) }
+    it { @record.ready?.should be_true }
   end
   
   context "when modifying an existing entry" do
-    let(:fields) { super().merge({"dns_value" => "192.168.1.1"}) }
+    let(:record) { super().merge({:value => ["192.168.1.1"]}) }
     before do
-      connection.zones.first.records.new(record).save
-      subject.modify
+      connection.zones.first.records.new(record.merge(:value => "127.0.0.1")).save
+      expect_any_instance_of(Fog::DNS::AWS::Record).to receive(:reload).at_least(2).times.and_call_original
+      @record = subject.modify
     end
-    its(:output) { should match(/Updated$/) }
+    its(:output) { should match(/Updated \(.*s\)$/) }
+    its(:output) { should_not match(/Failed|failed/) }
+    its(:error) { should be_nil }
     it { connection.zones.size.should == 1 }
     it { connection.zones.first.records.size.should == 1 }
-    it { connection.zones.first.records.first.name.should eq(record[:name]) }
-    it { connection.zones.first.records.first.type.should eq(record[:type]) }
-    it { connection.zones.first.records.first.value.should eq(["192.168.1.1"]) }
+    it { connection.zones.first.records.first.attributes.should eq(record) }
+    it { @record.ready?.should be_true }
   end
 
   describe :timer do
