@@ -551,7 +551,7 @@ module MaestroDev
         servers.each do |server|
           raise ArgumentError, "Parameter is not a Fog::Compute::Server object, it is a #{server.class}" unless server.is_a?(Fog::Compute::Server)
     
-          server_meta_data = { 'id' => server.identity, 'name' => server_name(server), 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
+          server_meta_data = { 'id' => server.identity, 'name' => server_name(server), 'ip' => server.public_ip_address, 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
           ipv4 = server.public_ip_address
           server_meta_data['ipv4'] = ipv4 if ipv4
           context_servers << server_meta_data
