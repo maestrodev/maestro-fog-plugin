@@ -2,47 +2,6 @@ require 'maestro_plugin'
 require 'fog'
 require 'fog/core/model'
 
-module Fog
-  module DNS
-    class AWS
-
-      class Record < Fog::Model
-
-        def initialize(attributes={})
-          puts attributes
-          super
-        end
-
-        def ready?
-          # requires :change_id, :status
-          status == 'INSYNC'
-        end
-
-
-        def save
-          self.ttl ||= 3600
-          options = attributes_to_options('CREATE')
-          data = service.change_resource_record_sets(zone.id, [options]).body
-          merge_attributes(data)
-          true
-        end
-
-        def reload
-          # If we have a change_id (newly created or modified), then reload performs a get_change to update status.
-          if change_id
-            data = service.get_change(change_id).body
-            merge_attributes(data)
-            self
-          else
-            super
-          end
-        end
-      end
-    end
-  end
-end
-
-
 module MaestroDev
   module Plugin
     class DnsWorker < Maestro::MaestroWorker
