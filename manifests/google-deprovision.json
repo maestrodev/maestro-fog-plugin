@@ -3,7 +3,14 @@
   "description": "Deprovision servers in Google Compute Engine. Deprovisions all servers started in a previous provision tasks.",
   "class": "MaestroDev::Plugin::GoogleWorker",
   "task": {
-    "inputs": {},
+    "inputs": {
+      "destroy_disks": {
+        "description": "destroy persistent disks attached to the server?",
+        "required": false,
+        "type": "Boolean",
+        "value": true
+      }
+    },
     "command": "/google/deprovision",
     "icon": "google.png"
   }

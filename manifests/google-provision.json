@@ -5,12 +5,6 @@
   "task": {
     "command": "/google/provision",
     "inputs": {
-      "image_name": {
-        "description": "name of the image to use (ie. centos-6-v20130813)",
-        "required": true,
-        "type": "String",
-        "value": "centos-6-v20130813"
-      },
       "machine_type": {
         "description": "Machine type defining RAM and CPU",
         "required": true,
@@ -23,9 +17,27 @@
         "type": "String",
         "value": "us-central1-a"
       },
+      "image_name": {
+        "description": "name of the image to use (ie. centos-6-v20130813)",
+        "required": true,
+        "type": "String",
+        "value": "centos-6-v20130813"
+      },
+      "disk_size": {
+        "description": "Size in GB of the persistent disk to be created for this instance. If set to 0 a scratch disk is used instead",
+        "required": false,
+        "type": "Integer",
+        "value": 10
+      },
+      "kernel": {
+        "description": "Kernel to use, required when persistent disks are used",
+        "required": false,
+        "type": "String",
+        "value": "gce-no-conn-track-v20130813"
+      },
       "tags": {
         "description": "Tags associated with the instance",
-        "required": true,
+        "required": false,
         "type": "Array",
         "value": []
       },

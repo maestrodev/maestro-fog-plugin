@@ -51,26 +51,53 @@ describe MaestroDev::Plugin::GoogleWorker, :provider => "google" do
     end
   end
 
-  describe 'deprovision' do
+  describe 'deprovision', :focus => true do
     let(:servers) {
       (1..2).map do |i|
         connection.servers.create(
           :name => "server#{i}", :image_name => image_name, :machine_type => machine_type, :zone_name => zone_name)
       end
     }
-
     let(:fields) { super().merge({
-      "google_ids" => ["server1","server2"]
+      "google_ids" => servers.map{|s| s.identity}
     })}
+    let(:stop_states) { ["STOPPED", "STOPPING", "TERMINATED"] }
+
+    before do
+      servers # force creation
+      # expect_any_instance_of(Fog::Compute::Google::Server).to receive(:destroy).and_call_original
+      subject.deprovision
+    end
 
     context 'when deprovisioning a machine' do
-      before do
-        servers # force creation
-        subject.deprovision
-      end
       its(:error) { should be_nil }
-      it { expect(subject.workitem[Maestro::MaestroWorker::OUTPUT_META]).to match(
-        %r[Deprovisioning VM with id/name 'server1'...done (.*)\nDeprovisioning VM with id/name 'server2'...done (.*)\nMaestro google deprovision complete!]) }
+      it { expect(subject.output).to match(
+        %r{Deprovisioned VM with id/name 'server1'.*Deprovisioned VM with id/name 'server2'.*Maestro google deprovision complete!}m
+      ) }
+      it { expect(stop_states).to include(connection.servers.get("server1").state) }
+      it { expect(stop_states).to include(connection.servers.get("server2").state) }
+    end
+
+    context 'when deprovisioning a machine with persistent disk' do
+      let(:disks) { [connection.disks.create(
+        :name => 'disk1', :size_gb => 10, :zone_name => zone_name, :source_image => image_name,
+      )] }
+      let(:servers) { [connection.servers.create(
+        :name => "server3", :machine_type => machine_type, :zone_name => zone_name, :kernel => 'gce-no-conn-track-v20130813', :disks => [ disks.first.get_as_boot_disk ]
+      )] }
+
+      context 'and destroy_disks is not set' do
+        its(:error) { should be_nil }
+        it { expect(connection.disks.size).to eq(1) }
+        it { expect(subject.output).not_to include("Deleting") }
+      end
+
+      context 'and destroy_disks is true' do
+        let(:fields) { super().merge({"destroy_disks" => true})}
+        its(:error) { should be_nil }
+        it { expect(connection.disks).to eq([]) }
+        it { expect(subject.output).to match(/Deleting disks: \["disk1"\]...done/m) }
+      end
     end
   end
 end

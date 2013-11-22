@@ -43,7 +43,7 @@ describe MaestroDev::Plugin::DnsWorker do
   context "when modifying an existing entry" do
     let(:record) { super().merge({:value => ["192.168.1.1"]}) }
     before do
-      connection.zones.first.records.new(record.merge(:value => "127.0.0.1")).save
+      connection.zones.first.records.create(record.merge(:value => "127.0.0.1"))
       expect_any_instance_of(Fog::DNS::AWS::Record).to receive(:reload).at_least(2).times.and_call_original
       @record = subject.modify
     end

@@ -54,6 +54,11 @@ module MaestroDev
         raise "Need to extend create_server method!"
       end
   
+      # destroy the server object
+      def destroy_server(connection, server)
+        server.destroy
+      end
+  
       # configure public keys if needed when server is up
       def setup_server(s)
         # noop
@@ -397,9 +402,7 @@ module MaestroDev
         connection = connect(true)
   
         ids.each do |id|
-          msg = "Deprovisioning VM with id/name '#{id}'"
-          Maestro.log.info msg
-          write_output("#{msg}...")
+          log_output("Deprovisioning VM with id/name '#{id}'", :info)
 
           start = Time.now
           begin
@@ -412,12 +415,11 @@ module MaestroDev
               # we don't want to delete in master by name as it is dangerous, a new vm could be started with same name
               delete_server_on_master(id)
             else
-              s.destroy
+              destroy_server(connection, s)
               delete_server_on_master(s.identity)
-              write_output("done (#{Time.now - start}s)\n")
+              log_output("Deprovisioned VM with id/name '#{id}' (#{Time.now - start}s)", :info)
             end
           rescue Exception => e
-            write_output("failed: #{e.message}\n")
             log("Error destroying instance with id/name '#{id}' (#{Time.now - start}s)", e)
           end
         end
