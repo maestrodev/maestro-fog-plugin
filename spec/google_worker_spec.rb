@@ -51,7 +51,7 @@ describe MaestroDev::Plugin::GoogleWorker, :provider => "google" do
     end
   end
 
-  describe 'deprovision', :focus => true do
+  describe 'deprovision' do
     let(:servers) {
       (1..2).map do |i|
         connection.servers.create(
@@ -80,7 +80,7 @@ describe MaestroDev::Plugin::GoogleWorker, :provider => "google" do
 
     context 'when deprovisioning a machine with persistent disk' do
       let(:disks) { [connection.disks.create(
-        :name => 'disk1', :size_gb => 10, :zone_name => zone_name, :source_image => image_name,
+        :name => 'disk1', :size_gb => 10, :zone_name => zone_name, :source_image => image_name
       )] }
       let(:servers) { [connection.servers.create(
         :name => "server3", :machine_type => machine_type, :zone_name => zone_name, :kernel => 'gce-no-conn-track-v20130813', :disks => [ disks.first.get_as_boot_disk ]

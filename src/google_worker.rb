@@ -96,10 +96,10 @@ module MaestroDev
 
       # destroy the server object
       def destroy_server(connection, server)
+        disks = server.disks.select{|d| d["type"] == "PERSISTENT"}
         server.destroy
         destroy_disks = get_boolean_field('destroy_disks')
         if destroy_disks
-          disks = server.disks.select{|d| d["type"] == "PERSISTENT"}
           return if disks.empty?
 
           # We need to wait for instance to be terminated before destroying disks
@@ -117,13 +117,13 @@ module MaestroDev
 
           # Delete the disks
           start = Time.now
-          msg = "Deleting disks: #{disks.map{|d| d["name"]}}"
+          msg = "Deleting disks: #{disks.map{|d| d["deviceName"]}}"
           Maestro.log.debug(msg)
           write_output("#{msg}...")
 
           deleted_disks = []
           disks.each do |d|
-            disk = connection.disks.get(d["name"],server.zone)
+            disk = connection.disks.get(d["deviceName"],server.zone)
             disk.destroy
             deleted_disks << disk
           end
