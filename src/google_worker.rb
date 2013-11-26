@@ -117,18 +117,22 @@ module MaestroDev
 
           # Delete the disks
           start = Time.now
-          msg = "Deleting disks: #{disks.map{|d| d["deviceName"]}}"
+          disks_to_delete = []
+          disks.each do |d|
+            match = d["source"].match(%r{projects/(.*)/zones/(.*)/disks/(.*)})
+            disks_to_delete << {:project => match[1], :zone => match[2], :disk => match[3]}
+          end
+
+          msg = "Deleting disks: #{disks_to_delete.map{|d| d[:disk]}}"
           Maestro.log.debug(msg)
           write_output("#{msg}...")
 
-          deleted_disks = []
-          disks.each do |d|
-            disk = connection.disks.get(d["deviceName"],server.zone)
+          disks_to_delete.each do |d|
+            disk = connection.disks.get(d[:disk],d[:zone])
             disk.destroy
-            deleted_disks << disk
           end
 
-          Maestro.log.debug("Deleted disks: #{disks.map{|d| d["deviceName"]}} (#{Time.now - start}s)")
+          Maestro.log.debug("Deleted disks: #{disks_to_delete.map{|d| d[:disk]}} (#{Time.now - start}s)")
           write_output("done (#{Time.now - start}s)\n")
         end
       end
