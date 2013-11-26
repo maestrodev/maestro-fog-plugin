@@ -131,6 +131,7 @@ module MaestroDev
         write_output("done (#{Time.now - start}s)\n")
   
         # save some values in the workitem so they are accessible for deprovision and other tasks
+        populate_meta([s], 'new')
         save_server_in_context([s])
   
         log_output("Server '#{s.name}' #{s.identity} started with public ip '#{s.public_ip_address}' and private ip '#{private_address(s)}'", :info)
@@ -156,7 +157,7 @@ module MaestroDev
           write_output(server_errors.join("\n"))
           return nil
         end
-        log_output("Server '#{s.name}' #{s.identity} provisioned in #{Time.now-start}s", :info)
+        log_output("Server '#{s.name}' #{s.identity} ssh provisioned in #{Time.now-start}s", :info)
   
         return s
       end
@@ -515,9 +516,7 @@ module MaestroDev
         s.respond_to?('image_id') ? s.image_id : 'no_image'
       end
       
-      # Get the flavor used to create a server.  Some providers support multiple flavors of an image,
-      # for example, image X may be base install, with a flavor 'with mysql' (just an example) that adds
-      # mysql to the base install
+      # Get the flavor used to create a server, describing disk, ram, cpu,...
       def server_flavor_id(s)
         s.respond_to?('flavor_id') ? s.flavor_id : nil
       end
@@ -552,7 +551,10 @@ module MaestroDev
   
         servers.each do |server|
           raise ArgumentError, "Parameter is not a Fog::Compute::Server object, it is a #{server.class}" unless server.is_a?(Fog::Compute::Server)
-    
+
+          # delete if already exists
+          context_servers.delete_if {|s| s['id'] == server.identity and s['provider'] == provider}
+
           server_meta_data = { 'id' => server.identity, 'name' => server_name(server), 'ip' => server.public_ip_address, 'image' => server_image_id(server), 'flavor' => server_flavor_id(server) , 'provider' => provider }
           ipv4 = server.public_ip_address
           server_meta_data['ipv4'] = ipv4 if ipv4

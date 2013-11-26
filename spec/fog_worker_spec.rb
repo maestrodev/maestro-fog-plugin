@@ -115,7 +115,15 @@ describe MaestroDev::Plugin::FogWorker, :provider => "test" do
       it { expect(field('test_hostname')).to eq("myhostname") }
       it { expect(field('test_username')).to eq("myusername") }
       it { expect(field('test_password')).to eq("mypassword") }
-      it { expect(field('__context_outputs__')['servers'].length).to eq(1), subject.output }
+      it { expect(field('__context_outputs__')['servers']).to eq([{
+        "id" => 1,
+        "name" => "test",
+        "ip" => "192.168.1.1",
+        "ipv4" => "192.168.1.1",
+        "image" => "no_image",
+        "flavor" => nil,
+        "provider" => "test"
+      }]), subject.output }
     end
 
     context 'when provisioning several servers' do

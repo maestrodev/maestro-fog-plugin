@@ -46,8 +46,17 @@ describe MaestroDev::Plugin::GoogleWorker, :provider => "google" do
       before { subject.provision }
       its(:error) { should be_nil }
       it { expect(subject.workitem[Maestro::MaestroWorker::OUTPUT_META]).to match(
-        /Server 'xxx' xxx started with public ip '.*' and private ip '.*'/) }
+        /Server 'xxx' xxx started with public ip '\d+\.\d+\.\d+\.\d+' and private ip '\d+\.\d+\.\d+\.\d+'/) }
       it { expect(field('google_ids')).to eq(["xxx"]) }
+      it { expect(field('__context_outputs__')['servers']).to eq([{
+        "id" => "xxx",
+        "name" => "xxx",
+        "ip" => subject.get_field("google_ips").first,
+        "ipv4" => subject.get_field("google_ips").first,
+        "image" => "https://www.googleapis.com/compute/#{connection.api_version}/projects/centos-cloud/global/images/#{image_name}",
+        "flavor" => "https://www.googleapis.com/compute/#{connection.api_version}/projects/#{project}/zones/#{zone_name}/machineTypes/#{machine_type}",
+        "provider" => "google"
+      }]), subject.output }
     end
   end
 

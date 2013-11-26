@@ -12,7 +12,7 @@ GEM
     extlib (0.9.16)
     faraday (0.8.8)
       multipart-post (~> 1.2.0)
-    fog-maestrodev (1.18.0.20131125111730)
+    fog-maestrodev (1.18.0.20131126183714)
       builder
       excon (~> 0.28.0)
       formatador (~> 0.2.0)
