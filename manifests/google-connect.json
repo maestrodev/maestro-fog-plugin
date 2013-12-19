@@ -34,7 +34,6 @@
         "public_key": "String",
         "public_key_path": "String",
         "disk_size": "Integer",
-        "kernel": "String",
         "destroy_disks": "Boolean"
       }
     }

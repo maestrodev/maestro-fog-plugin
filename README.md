@@ -8,6 +8,7 @@ Currently supporting
 
  * [Rackspace](#rackspace)
  * [Openstack](#openstack)
+ * [Google Compute Engine](#google-compute-engine)
  * [Joyent](#joyent)
  * [InstantServers](#InstantServers)
  * [VMWare vSphere](#vsphere)
@@ -16,7 +17,7 @@ After the VMs/instances are started, the plugin can execute **SSH** commands on 
 
 # Requirements
 
-Requires Maestro 4.10+ and Maestro Agent 1.11+
+Requires Maestro 4.20+ and Maestro Agent 2.3+
 
 # Common parameters
 * **number_of_vms**: number of vms/instances to start (defaults to 1)
@@ -157,10 +158,16 @@ You can find the image_id and flavor_id by adding a server from the Rackspace UI
 
 To get your authorization key, visit the [Google API Console](https://code.google.com/apis/console). Once there, go to "API Access". Click "Create another client ID" and select "service account". Download the private key to be used in Maestro and take note of the Service account email address.
 
+Machines are created with persistent disks automatically, based on the image provided.
+
 * **project**: Project id
 * **client_email**: Service account email address
 * **key_location**: Path in the agent filesystem where the pk12 private key is saved
-
+* **machine_type**: VM size in CPU and RAM, ie. n1-standard-1
+* **zone_name**: GCE zone, ie. us-central1-a
+* **image_name**: image the disk is created from, ie. centos-6-v20131120
+* **disk_size**: boot disk size in GB
+* **tags**: tags associated to the instance. Can be used to create firewall rules automatically
 
 # Joyent
 

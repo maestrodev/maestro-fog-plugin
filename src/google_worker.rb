@@ -41,8 +41,7 @@ module MaestroDev
         image_name = get_field('image_name', "centos-6-v20130813")
         machine_type = get_field('machine_type', "n1-standard-1")
         zone_name = get_field('zone_name', "us-central1-a")
-        disk_size = get_int_field('disk_size')
-        kernel = get_field('kernel', "gce-no-conn-track-v20130813")
+        disk_size = get_int_field('disk_size', 10)
         public_key = get_field('public_key')
         public_key_path = get_field('public_key_path')
         if (public_key && public_key_path) 
@@ -64,27 +63,22 @@ module MaestroDev
         }
 
         # create persistent disk
-        if disk_size > 0
-          disk = connection.disks.create({
-            :name => name,
-            :size_gb => disk_size,
-            :zone_name => zone_name,
-            :source_image => image_name,
-          })
+        disk = connection.disks.create({
+          :name => name,
+          :size_gb => disk_size,
+          :zone_name => zone_name,
+          :source_image => image_name,
+        })
 
-          msg = "Waiting for disk '#{name}' to be ready"
-          Maestro.log.debug msg
-          write_output("#{msg}...")
-          start = Time.now
-          disk.wait_for { disk.ready? }
-          Maestro.log.debug "Disk '#{name}' is ready (#{Time.now - start}s)"
-          write_output("done (#{Time.now - start}s)\n")
+        msg = "Waiting for disk '#{name}' to be ready"
+        Maestro.log.debug msg
+        write_output("#{msg}...")
+        start = Time.now
+        disk.wait_for { disk.ready? }
+        Maestro.log.debug "Disk '#{name}' is ready (#{Time.now - start}s)"
+        write_output("done (#{Time.now - start}s)\n")
 
-          options[:kernel] = kernel
-          options[:disks] = [ disk.get_as_boot_disk ]
-        else
-          options[:image_name] = image_name
-        end
+        options[:disks] = [disk]
 
         begin
           s = do_create_server(connection, options)
