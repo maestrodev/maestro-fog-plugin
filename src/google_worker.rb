@@ -102,10 +102,12 @@ module MaestroDev
           msg = "Waiting for server to be terminated: #{server.name}"
           Maestro.log.debug(msg)
           write_output("#{msg}...")
+
+          # we need to wait until the server is removed from GCE
+          # state == TERMINATED doesn't let us delete the disk yet
           begin
-            server.wait_for { state == "TERMINATED" }
+            server.wait_for { false }
           rescue Fog::Errors::NotFound => e
-            # if server is terminated we may get a NotFound error
           end
           Maestro.log.debug("Server is terminated: #{server.name} (#{Time.now - start}s)")
           write_output("done (#{Time.now - start}s)\n")
