@@ -63,6 +63,11 @@ module MaestroDev
         }
 
         # create persistent disk
+        msg = "Creating disk '#{name}' and waiting for it to be ready"
+        Maestro.log.debug msg
+        write_output("#{msg}...")
+        start = Time.now
+
         disk = connection.disks.create({
           :name => name,
           :size_gb => disk_size,
@@ -70,10 +75,6 @@ module MaestroDev
           :source_image => image_name,
         })
 
-        msg = "Waiting for disk '#{name}' to be ready"
-        Maestro.log.debug msg
-        write_output("#{msg}...")
-        start = Time.now
         disk.wait_for { disk.ready? }
         Maestro.log.debug "Disk '#{name}' is ready (#{Time.now - start}s)"
         write_output("done (#{Time.now - start}s)\n")
