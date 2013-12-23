@@ -37,6 +37,14 @@ module MaestroDev
         }
       end
   
+      def server_exists?(connection, name)
+        begin
+          !connection.servers.get(name, get_field('zone_name')).nil?
+        rescue Fog::Errors::NotFound # needed in fog <=1.19.0
+          false
+        end
+      end
+
       def create_server(connection, name, options={})
         image_name = get_field('image_name', "centos-6-v20130813")
         machine_type = get_field('machine_type', "n1-standard-1")

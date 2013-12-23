@@ -64,6 +64,11 @@ module MaestroDev
         # noop
       end
 
+      # Check if there's already a server with this name
+      def server_exists?(connection, name)
+        connection.servers.any? {|s| s.name == name}
+      end
+
       # connect to the provider
       def connect(overwrite_from_fields = false)
         msg = "Connecting to #{provider}"
@@ -99,8 +104,7 @@ module MaestroDev
       # create 5 random chars if name not provided
       # if it's a fully qualified domain add them to the host name only
       def random_name(basename = "maestro")
-        basename ||= "maestro"
-        parts = basename.split(".")
+        parts = (basename.nil? or basename.empty? ? "maestro" : basename).split(".")
         parts[0]="#{parts[0]}#{name_split_char}#{(0...5).map{ ('a'..'z').to_a[rand(26)] }.join}"
         parts.join(".")
       end
@@ -252,11 +256,11 @@ module MaestroDev
         connection = connect
         servers = []
   
-        number_of_vms = get_field('number_of_vms') || 1
+        number_of_vms = get_field('number_of_vms', 1)
   
         # validate ssh options early before starting vms
         commands = get_field('ssh_commands')
-        username = get_field('ssh_user') || "root"
+        username = get_field('ssh_user', "root")
         private_key = get_field("private_key")
         private_key_path = get_field("private_key_path")
         ssh_password = get_field("ssh_password")
@@ -280,18 +284,20 @@ module MaestroDev
           end
         end
   
-        name = get_field('name')
-        if !name.nil? and number_of_vms==1
+        name = get_field('name', '')
+
+        # some providers require name, so let's assign a random one if not set to be sure
+        # guarantee unique name if name is specified but taken already or launching more than 1 vm
+        randomize_name = (name.empty? or (number_of_vms > 1))
+
+        unless randomize_name
           msg = "Looking for existing vms with name '#{name}'"
           start = Time.now
           Maestro.log.debug msg
           write_output "#{msg}..."
-          existing_names = connection.servers.map {|s| s.name}
+          randomize_name = server_exists?(connection, name)
           write_output "done (#{Time.now - start}s)\n"
         end
-        # some providers require name, so let's assign a random one if not set to be sure
-        # guarantee unique name if name is specified but taken already or launching more than 1 vm
-        randomize_name = (name.nil? or name.empty? or (number_of_vms > 1) or existing_names.include?(name))
   
         # start the servers
         (1..number_of_vms).each do |i|
