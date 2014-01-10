@@ -1,0 +1,25 @@
+{
+  "name" : "AWS EIP disassociate",
+  "description" : "Remove the association between an Elastic IP address and a server.",
+  "class": "MaestroDev::Plugin::AwsWorker",
+  "task":{
+    "command" : "/aws/disassociate-address",
+    "inputs": {
+      "instance_id": {
+        "label": "AWS Instance ID",
+        "description": "(Optional) AWS instance-id the EIP is currently associated with.  Can be used to ensure IP is where you think it is.  If not specified, blindly removes association without checking.",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
+      "ip_address": {
+        "label": "Elastic IP",
+        "description": "The Elastic IP address to disassociate.",
+        "required": true,
+        "type": "String",
+        "value": null
+      }
+    },
+    "icon":"aws.png"
+  }
+}

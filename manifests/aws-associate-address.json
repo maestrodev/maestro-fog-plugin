@@ -1,0 +1,32 @@
+{
+  "name" : "AWS EIP associate",
+  "description" : "Associate an Elastic IP address with a server.",
+  "class": "MaestroDev::Plugin::AwsWorker",
+  "task":{
+    "command" : "/aws/associate-address",
+    "inputs": {
+      "instance_id": {
+        "label": "AWS Instance ID",
+        "description": "AWS instance-id to associate EIP with.  If not specified will try to use instance-id provisioned in a previous step.",
+        "required": false,
+        "type": "String",
+        "value": null
+      },
+      "ip_address": {
+        "label": "Elastic IP",
+        "description": "The Elastic IP address to associate.",
+        "required": true,
+        "type": "String",
+        "value": null
+      },
+      "reassign_if_assigned": {
+        "label": "Reassign?",
+        "description": "Move the EIP to the specified instance-id if already associated with another instance.",
+        "required": false,
+        "type": "Boolean",
+        "value": false
+      }
+    },
+    "icon":"aws.png"
+  }
+}

@@ -26,6 +26,8 @@ task :mergemanifest do
   merge_manifests(manifest, "update")
   merge_manifests(manifest, "create")
   merge_manifests(manifest, "modify")
+  merge_manifests(manifest, "associate-address")
+  merge_manifests(manifest, "disassociate-address")
   File.open("manifest.template.json",'w'){ |f| f.write(JSON.pretty_generate(manifest)) }
 end
 
