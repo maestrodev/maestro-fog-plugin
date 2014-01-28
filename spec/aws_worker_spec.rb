@@ -113,7 +113,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       server.wait_for { ready? }
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['instance_id'] = server.id
       fields['ip_address'] = ip_addr
@@ -140,7 +140,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       server = connection.servers.get(workitem['fields']['aws_ids'][0])
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
 #      fields['instance_id'] = server.id
       fields['ip_address'] = ip_addr
@@ -190,7 +190,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       server.wait_for { ready? }
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['instance_id'] = existing_server.id
       fields['ip_address'] = ip_addr
@@ -225,7 +225,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       server.wait_for { ready? }
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['instance_id'] = existing_server.id
       fields['ip_address'] = ip_addr
@@ -274,7 +274,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       workitem = {'fields' => fields}
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['ip_address'] = ip_addr
 
@@ -294,7 +294,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       orig_ip_addr = server.public_ip_address
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['instance_id'] = server.id
       fields['ip_address'] = ip_addr
@@ -332,7 +332,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       orig_ip_addr = server.public_ip_address
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['instance_id'] = server.id
       fields['ip_address'] = ip_addr
@@ -369,7 +369,7 @@ describe MaestroDev::Plugin::AwsWorker, :provider => "aws" do
       orig_ip_addr = server.public_ip_address
 
       # create an address
-      ip_addr = connection.allocate_address('vpc').data[:body]['publicIp']
+      ip_addr = connection.allocate_address.data[:body]['publicIp']
 
       fields['instance_id'] = server.id
       fields['ip_address'] = ip_addr
