@@ -97,7 +97,7 @@ module MaestroDev
 
           write_output("Associating elastic ip #{@ip_addr} with instance #{@instance_id}")
 
-          connection.associate_address(@instance_id,nil,nil,eip.allocation_id)
+          connection.associate_address(@instance_id,@ip_addr)
         end
       end
 
