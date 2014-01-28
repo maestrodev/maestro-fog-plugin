@@ -3,7 +3,7 @@
   "description" : "Associate an Elastic IP address with a server.",
   "class": "MaestroDev::Plugin::AwsWorker",
   "task":{
-    "command" : "/aws/associate-address",
+    "command" : "/aws/associate_address",
     "inputs": {
       "instance_id": {
         "label": "AWS Instance ID",

@@ -3,7 +3,7 @@
   "description" : "Remove the association between an Elastic IP address and a server.",
   "class": "MaestroDev::Plugin::AwsWorker",
   "task":{
-    "command" : "/aws/disassociate-address",
+    "command" : "/aws/disassociate_address",
     "inputs": {
       "instance_id": {
         "label": "AWS Instance ID",
