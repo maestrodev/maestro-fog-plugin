@@ -206,23 +206,18 @@ module MaestroDev
 
         for i in 1..10
           begin
-            responses = s.ssh(commands, ssh_options)
+            log_output("[#{host}] Running Commands:\n  #{commands.join("\n  ")}\n")
+            responses = s.ssh(commands, ssh_options) do |data, extended_data|
+              write_output(data, :buffer => true) unless data.empty? #stdout
+              write_output(extended_data, :buffer => true) unless extended_data.empty? #stderr
+            end
+
             responses.each do |result|
-              e = result.stderr
-              o = result.stdout
-  
-              log_output("[#{host}] Ran Command #{result.command} With Output:\n#{o}\n")
-  
-              if !result.stderr.nil? && result.stderr != ''
-                log_output("[#{host}] Stderr:\n#{o}")
-              end
-  
               if result.status != 0
                 msg = "[#{host}] Command '#{result.command}' failed with status #{result.status}"
                 errors << msg
                 log_output(msg, :info)
               end
-  
             end unless responses.nil?
             break
           rescue Errno::EHOSTUNREACH, Timeout::Error, Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::SSH::Disconnect => e
