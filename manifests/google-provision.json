@@ -52,6 +52,18 @@
           "type": "String", 
           "value": "user",
           "description": "username to use for ssh connection. Note that Google images have root ssh disabled by default"
+      },
+      "service_account_email": {
+          "required": false,
+          "type": "Email",
+          "value": null,
+          "description": "email for a service account to add to the instance. If unspecified, and scopes are, then it will be derived from the client email"
+      },
+      "service_account_scopes": {
+          "required": false,
+          "type": "Array",
+          "value": null,
+          "description": "a list of scopes to add to the service account"
       }
     },
     "outputs": {

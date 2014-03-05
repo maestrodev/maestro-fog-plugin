@@ -56,9 +56,31 @@ module MaestroDev
           write_output("WARNING: public_key_path is ignored because public_key is defined\n")
         end
         write_output("WARNING: Google images have root ssh disabled by default\n") if options[:username] == "root"
+        service_account_email = get_field('service_account_email')
+        service_account_scopes = get_field('service_account_scopes')
+        # remove any empty values
+        service_account_scopes.reject! { |s| s.nil? or s.empty? } if service_account_scopes
+        if (service_account_scopes.nil? || service_account_scopes.empty?)
+          if service_account_email
+            write_output("WARNING: no service account will be created for the supplied email as no scopes were provided")
+          end
+
+          service_accounts = nil
+        else
+          unless service_account_email
+            # 123845678986-abcdefghijk@developer.gserviceaccount.com -> 123845678986@project.gserviceaccount.com
+            service_account_email = get_field('client_email').gsub(/(.*)-(.*)@developer/, '\1@project')
+          end
+
+          service_accounts = [
+              :email => service_account_email,
+              :scopes => service_account_scopes
+          ]
+        end
 
         name_msg = name.nil? ? "" : "'#{name}' "
         log_output("Creating server #{name_msg}from image #{image_name}/#{machine_type} in #{zone_name}", :info)
+        log_output("Adding service account #{service_accounts}") if service_accounts
 
         options = {
           :name => name,
@@ -67,7 +89,8 @@ module MaestroDev
           :tags => get_field('tags'),
           :public_key => public_key,
           :public_key_path => public_key_path,
-          :username => options[:username]
+          :username => options[:username],
+          :service_accounts => service_accounts
         }
 
         # create persistent disk
