@@ -60,7 +60,7 @@ GEM
       json (>= 1.4.6)
       logging (= 1.8.0)
       rubyzip (= 0.9.8)
-    mime-types (2.1)
+    mime-types (1.25.1)
     mini_portile (0.5.2)
     multi_json (1.8.4)
     multipart-post (2.0.0)
@@ -112,6 +112,7 @@ DEPENDENCIES
   json
   maestro-plugin-rake-tasks
   maestro_plugin (>= 0.0.17)
+  mime-types (~> 1.16)
   rbvmomi (>= 1.3.0)
   rspec
   unf
