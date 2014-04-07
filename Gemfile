@@ -2,9 +2,7 @@ source "https://rubygems.org"
 
 gem 'maestro_plugin', '>= 0.0.17'
 
-#gem "fog", ">=1.20.0"
-# Temporary, for serviceAccounts
-gem "fog-maestrodev", "~> 1.20.0.20140305101839"
+gem "fog", ">= 1.21.0"
 
 # Constraint here to avoid conflicts with other plugins that require
 # mime-types 1.x. We consider that a system requirement of Maestro until it
