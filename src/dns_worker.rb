@@ -77,7 +77,11 @@ module MaestroDev
         write_output("#{msg}...")
         Maestro.log.info(msg)
         start = Time.now
-        record = zone.records.create(data)
+        begin
+          record = zone.records.create(data)
+        rescue Excon::Errors::BadRequest => e
+          raise PluginError, "Failed To Create Record, AWS returned [#{e.status}] #{e.body}"
+        end
         if(record)
           write_output(" Created (#{Time.now - start}s)\n")
         else
