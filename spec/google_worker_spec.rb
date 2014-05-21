@@ -102,4 +102,8 @@ describe MaestroDev::Plugin::GoogleWorker, :provider => "google" do
       it { expect(subject.output).to match(/Deleting disks: \["disk1"\]...done/m) }
     end
   end
+
+  describe :sanitize_tags do
+    it { expect(subject.send(:sanitize_tags, ["x", "y-z-", "a12", "-", "."])).to eq(["x", "y-z", "a12"]) }
+  end
 end

@@ -18,7 +18,9 @@ end
 module MaestroDev
   module Plugin
     class GoogleWorker < FogWorker
-  
+
+      TAG_REGEX = /(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?)/
+
       def provider
         "google"
       end
@@ -86,7 +88,7 @@ module MaestroDev
           :name => name,
           :machine_type => machine_type,
           :zone_name => zone_name,
-          :tags => get_field('tags'),
+          :tags => sanitize_tags(get_field('tags')),
           :public_key => public_key,
           :public_key_path => public_key_path,
           :username => options[:username],
@@ -163,6 +165,13 @@ module MaestroDev
           Maestro.log.debug("Deleted disks: #{disks_to_delete.map{|d| d[:disk]}} (#{Time.now - start}s)")
           write_output("done (#{Time.now - start}s)\n")
         end
+      end
+
+      private
+
+      def sanitize_tags(tags)
+        return nil if tags.nil?
+        tags.map {|tag| (m = tag.match(TAG_REGEX)) && m[0]}.compact
       end
     end
   end
