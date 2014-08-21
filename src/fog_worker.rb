@@ -252,6 +252,11 @@ module MaestroDev
         servers = []
   
         number_of_vms = get_field('number_of_vms', 1)
+        if number_of_vms <= 0
+          # it may happen, null converted to 0
+          Maestro.log.warn "Setting number_of_vms to 1, was #{number_of_vms}"
+          number_of_vms = 1
+        end
   
         # validate ssh options early before starting vms
         commands = get_field('ssh_commands')
