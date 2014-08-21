@@ -61,6 +61,12 @@ module MaestroDev
           Maestro.log.error msg
           set_error msg
           return
+        rescue Fog::Compute::AWS::Error => e
+          if e.message =~ /^AuthFailure /
+            raise ConfigError, "Authentication Failure creating server from image #{image_id}, check the credentials defined in the task: #{e.message}"
+          else
+            log("Error creating server from image #{image_id}", e) and return
+          end
         rescue Exception => e
           log("Error creating server from image #{image_id}", e) and return
         end
